@@ -20,7 +20,7 @@
   "author": "",
   "license": "UNLICENSED",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.2",
