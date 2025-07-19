@@ -20,7 +20,6 @@ This is a TypeScript template for a project for Coding AI Agent.
 
 - You MUST follow t-wada's Test-Driven Development. Create failing tests first, then make them pass.
 - You MUST put test files in the same directory as the source files.
-- You MUST use power-assert for assertions.
 
 ### Functional Programming
 

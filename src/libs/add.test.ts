@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict'
-import { test } from 'vitest'
+import { assert, test } from 'vitest'
 import { add } from './add.js'
 
 test('add関数は正しく加算を行う', () => {
