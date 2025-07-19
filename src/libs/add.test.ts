@@ -9,7 +9,13 @@ test('add関数は正しく加算を行う', () => {
 
 test('power-assertのデモンストレーション', () => {
   const numbers = [1, 2, 3]
-  const result = add(numbers[0], numbers[1])
+  const first = numbers[0]
+  const second = numbers[1]
+
+  assert(first !== undefined)
+  assert(second !== undefined)
+
+  const result = add(first, second)
   const expected = 3
 
   assert(result === expected)

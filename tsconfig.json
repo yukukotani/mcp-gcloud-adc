@@ -1,12 +1,15 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "target": "ES2023",
-    "lib": ["ES2023"],
+    "target": "ESNext",
+    "lib": ["ESNext"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "moduleDetection": "force",
     "rootDir": "./src",
     "outDir": "./dist",
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noUnusedLocals": true,
@@ -24,11 +27,11 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "inlineSources": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "incremental": true
+    "incremental": true,
+    "noEmitOnError": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "coverage"]
 }
