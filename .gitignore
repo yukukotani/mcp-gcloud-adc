@@ -24,7 +24,6 @@ yarn-error.log*
 pnpm-debug.log*
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
