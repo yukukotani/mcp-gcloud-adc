@@ -29,6 +29,7 @@ export const handleCli = (args: string[]): void => {
 
   if (result.success) {
     console.log(`Result: ${result.value}`);
+    process.exit(0);
   } else {
     console.error(`Error: ${result.error}`);
     process.exit(1);
