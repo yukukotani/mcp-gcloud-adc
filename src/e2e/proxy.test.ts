@@ -108,9 +108,9 @@ describe("Proxy E2E Tests", () => {
   });
 
   describe("設定バリデーション", () => {
-    it("無効なURLでエラーを投げる", async () => {
+    it("無効なプロトコルでエラーを投げる", async () => {
       const options: ProxyOptions = {
-        url: "http://example.com", // HTTPSではない
+        url: "ftp://example.com", // HTTPでもHTTPSでもない
         timeout: 30000,
         verbose: false,
       };
@@ -151,10 +151,10 @@ describe("Proxy E2E Tests", () => {
       await expect(startProxy(options)).rejects.toThrow();
     });
 
-    it("HTTPエラーを適切に処理する", async () => {
+    it("無効なプロトコルエラーを適切に処理する", async () => {
       // バリデーションエラーでテストする（起動前にエラーになる）
       const options: ProxyOptions = {
-        url: "http://example.com", // HTTPSではない
+        url: "ftp://example.com", // HTTPでもHTTPSでもない
         timeout: 30000,
         verbose: false,
       };

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMcpProxy } from "../usecase/mcp-proxy/handler.js";
 import { startProxy } from "../usecase/start-proxy.js";
-import type { JSONRPCRequest } from "@modelcontextprotocol/sdk/types.js";
+import type { JSONRPCRequest, JSONRPCError } from "@modelcontextprotocol/sdk/types.js";
 import type { ProxyOptions } from "../usecase/mcp-proxy/types.js";
 
 describe("Error Scenarios", () => {
@@ -62,10 +62,9 @@ describe("Error Scenarios", () => {
       const response = await proxy.handleRequest(request);
 
       expect(response).toHaveProperty("error");
-      if ("error" in response) {
-        expect(response.error?.code).toBe(-32603); // Internal error
-        expect(response.error?.message).toContain("Could not load the default credentials");
-      }
+      const errorResponse = response as unknown as JSONRPCError;
+      expect(errorResponse.error.code).toBe(-32603); // Internal error
+      expect(errorResponse.error.message).toContain("Could not load the default credentials");
     });
 
     it("IDトークンの有効期限切れ", async () => {
@@ -101,7 +100,8 @@ describe("Error Scenarios", () => {
       const response = await proxy.handleRequest(request);
 
       expect(response).toHaveProperty("error");
-      expect(response.error?.message).toContain("Token has expired");
+      const errorResponse = response as unknown as JSONRPCError;
+      expect(errorResponse.error.message).toContain("Token has expired");
     });
 
     it("権限不足エラー", async () => {
@@ -137,8 +137,9 @@ describe("Error Scenarios", () => {
       const response = await proxy.handleRequest(request);
 
       expect(response).toHaveProperty("error");
-      expect(response.error?.code).toBe(-32603);
-      expect(response.error?.message).toContain("Insufficient permissions");
+      const errorResponse = response as unknown as JSONRPCError;
+      expect(errorResponse.error.code).toBe(-32603);
+      expect(errorResponse.error.message).toContain("Insufficient permissions");
     });
   });
 
@@ -180,7 +181,8 @@ describe("Error Scenarios", () => {
       const response = await proxy.handleRequest(request);
 
       expect(response).toHaveProperty("error");
-      expect(response.error?.message).toContain("Request timed out");
+      const errorResponse = response as unknown as JSONRPCError;
+      expect(errorResponse.error.message).toContain("Request timed out");
     });
 
     it("ネットワーク接続失敗", async () => {
@@ -221,7 +223,8 @@ describe("Error Scenarios", () => {
       const response = await proxy.handleRequest(request);
 
       expect(response).toHaveProperty("error");
-      expect(response.error?.message).toContain("Network connection failed");
+      const errorResponse = response as unknown as JSONRPCError;
+      expect(errorResponse.error.message).toContain("Network connection failed");
     });
 
     it("HTTP 500エラー", async () => {
@@ -263,7 +266,8 @@ describe("Error Scenarios", () => {
       const response = await proxy.handleRequest(request);
 
       expect(response).toHaveProperty("error");
-      expect(response.error?.message).toContain("HTTP 500");
+      const errorResponse = response as unknown as JSONRPCError;
+      expect(errorResponse.error.message).toContain("HTTP 500");
     });
 
     it("HTTP 404エラー（サービスが見つからない）", async () => {
@@ -305,7 +309,8 @@ describe("Error Scenarios", () => {
       const response = await proxy.handleRequest(request);
 
       expect(response).toHaveProperty("error");
-      expect(response.error?.message).toContain("HTTP 404");
+      const errorResponse = response as unknown as JSONRPCError;
+      expect(errorResponse.error.message).toContain("HTTP 404");
     });
   });
 
@@ -348,7 +353,8 @@ describe("Error Scenarios", () => {
       const response = await proxy.handleRequest(request);
 
       expect(response).toHaveProperty("error");
-      expect(response.error?.message).toContain("Failed to parse response");
+      const errorResponse = response as unknown as JSONRPCError;
+      expect(errorResponse.error.message).toContain("Failed to parse response");
     });
 
     it("無効なリクエスト形式", async () => {
@@ -379,7 +385,8 @@ describe("Error Scenarios", () => {
       const response = await proxy.handleRequest(invalidRequest);
 
       expect(response).toHaveProperty("error");
-      expect(response.error?.code).toBe(-32603); // Internal error (実装では-32603を返す)
+      const errorResponse = response as unknown as JSONRPCError;
+      expect(errorResponse.error.code).toBe(-32603); // Internal error (実装では-32603を返す)
     });
   });
 
@@ -460,7 +467,8 @@ describe("Error Scenarios", () => {
       const response = await proxy.handleRequest(request);
 
       expect(response).toHaveProperty("error");
-      expect(response.error?.message).toContain("too large");
+      const errorResponse = response as unknown as JSONRPCError;
+      expect(errorResponse.error.message).toContain("too large");
     });
   });
 
@@ -509,7 +517,8 @@ describe("Error Scenarios", () => {
       // 全てのレスポンスがエラーを含むことを確認
       responses.forEach(response => {
         expect(response).toHaveProperty("error");
-        expect(response.error?.message).toContain("Too Many Requests");
+        const errorResponse = response as unknown as JSONRPCError;
+        expect(errorResponse.error.message).toContain("Too Many Requests");
       });
     });
   });

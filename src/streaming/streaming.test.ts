@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMcpProxy } from "../usecase/mcp-proxy/handler.js";
-import type { JSONRPCRequest } from "@modelcontextprotocol/sdk/types.js";
+import type { JSONRPCRequest, JSONRPCError } from "@modelcontextprotocol/sdk/types.js";
+import { createHttpClient } from "../libs/http/http-client.js";
 
 // HTTPクライアントのモック
 const mockHttpClient = {
@@ -122,7 +123,7 @@ describe("Streaming Tests", () => {
       // mockHttpClient.postは通常のレスポンスを返すように設定
       mockHttpClient.post.mockResolvedValue({
         type: "success",
-        data: JSON.parse(streamChunks[streamChunks.length - 1]),
+        data: JSON.parse(streamChunks[streamChunks.length - 1]!),
         status: 200,
       });
 
@@ -176,9 +177,8 @@ describe("Streaming Tests", () => {
 
       // エラーレスポンスが返されることを確認
       expect(response).toHaveProperty("error");
-      if ("error" in response) {
-        expect(response.error?.message).toContain("Token has expired");
-      }
+      const errorResponse = response as unknown as JSONRPCError;
+      expect(errorResponse.error.message).toContain("Token has expired");
     });
 
     it("ストリーミング中のHTTPエラーを処理する", async () => {

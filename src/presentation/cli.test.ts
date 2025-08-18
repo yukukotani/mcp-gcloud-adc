@@ -34,11 +34,16 @@ describe("CLI", () => {
       })).not.toThrow();
     });
 
-    it("非HTTPSのURLを拒否する", () => {
+    it("HTTPとHTTPSの両方を受け入れる", () => {
       expect(() => validateCliOptions({
         url: "http://example.com",
         timeout: 60000,
-      })).toThrow("URL must be HTTPS");
+      })).not.toThrow();
+      
+      expect(() => validateCliOptions({
+        url: "https://example.com",
+        timeout: 60000,
+      })).not.toThrow();
     });
 
     it("無効なURL形式を拒否する", () => {
@@ -134,13 +139,13 @@ describe("CLI", () => {
       expect(mockExit).toHaveBeenCalledWith(1);
     });
 
-    it("無効なオプションでバリデーションエラーを投げる", async () => {
+    it("無効なプロトコルでバリデーションエラーを投げる", async () => {
       const options: CliOptions = {
-        url: "http://example.com", // HTTPSではない
+        url: "ftp://example.com", // HTTPでもHTTPSでもない
         timeout: 120000,
       };
 
-      await expect(executeProxyCommand(options)).rejects.toThrow("URL must be HTTPS");
+      await expect(executeProxyCommand(options)).rejects.toThrow("URL must be HTTP or HTTPS");
     });
   });
 });

@@ -16,7 +16,7 @@ const proxyCommand = {
       type: "string" as const,
       short: "u" as const,
       required: true as const,
-      description: "Cloud Run service URL (must be HTTPS)",
+      description: "Cloud Run service URL (HTTP or HTTPS)",
     },
     timeout: {
       type: "number" as const,
@@ -30,8 +30,11 @@ const proxyCommand = {
       description: "Enable verbose logging",
     },
   },
-  examples: `# Basic usage
+  examples: `# Basic usage (HTTPS)
 $ mcp-gcloud-proxy --url https://my-service-abc123-uc.a.run.app
+
+# Local development (HTTP)
+$ mcp-gcloud-proxy --url http://localhost:3000
 
 # With custom timeout and verbose logging
 $ mcp-gcloud-proxy -u https://my-service-abc123-uc.a.run.app -v -t 60000`,
@@ -50,8 +53,8 @@ export type CliOptions = {
 export function validateCliOptions(options: CliOptions): void {
   const { url, timeout } = options;
 
-  if (!url.startsWith("https://")) {
-    throw new Error("URL must be HTTPS");
+  if (!url.startsWith("https://") && !url.startsWith("http://")) {
+    throw new Error("URL must be HTTP or HTTPS");
   }
 
   try {
