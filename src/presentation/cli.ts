@@ -101,6 +101,7 @@ export async function runCli(): Promise<void> {
     name: "mcp-gcloud-proxy",
     version: "1.0.0",
     description: "Google Cloud Run MCP Server Proxy with ADC authentication",
+    renderHeader: async () => "",
   });
 }
 

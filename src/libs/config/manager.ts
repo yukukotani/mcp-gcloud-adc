@@ -9,7 +9,7 @@ export type AppConfig = {
   proxy: ProxyOptions;
   auth: AuthConfig;
   logging: {
-    level: "debug" | "info" | "warn" | "error";
+    level: "debug" | "info" | "warn" | "error" | "silent";
     type: "console" | "structured";
     verbose: boolean;
   };
@@ -48,7 +48,9 @@ export class DefaultConfigManager implements ConfigManager {
       proxy: {
         url: cliOptions.url,
         timeout: this.parseTimeout(env.MCP_PROXY_TIMEOUT) || cliOptions.timeout,
-        ...(cliOptions.verbose !== undefined && { verbose: cliOptions.verbose }),
+        ...(cliOptions.verbose !== undefined && {
+          verbose: cliOptions.verbose,
+        }),
       },
       auth: {
         ...(env.GOOGLE_APPLICATION_CREDENTIALS && {
@@ -147,11 +149,11 @@ export class DefaultConfigManager implements ConfigManager {
 
   private parseLogLevel(
     value?: string,
-  ): "debug" | "info" | "warn" | "error" | null {
+  ): "debug" | "info" | "warn" | "error" | "silent" | null {
     if (!value) return null;
 
     const lowercased = value.toLowerCase();
-    if (["debug", "info", "warn", "error"].includes(lowercased)) {
+    if (["debug", "info", "warn", "error", "silent"].includes(lowercased)) {
       return lowercased as "debug" | "info" | "warn" | "error";
     }
 

@@ -1,10 +1,8 @@
 import pino from "pino";
-import type { Logger as PinoLogger } from "pino";
-
-export type LogLevel = "debug" | "info" | "warn" | "error";
+import type { LevelWithSilent, Logger as PinoLogger } from "pino";
 
 export type LoggerConfig = {
-  level?: LogLevel;
+  level?: pino.LevelWithSilent;
   verbose?: boolean;
   context?: string;
   pretty?: boolean;
@@ -12,7 +10,7 @@ export type LoggerConfig = {
 
 export function createPinoLogger(config: LoggerConfig = {}): PinoLogger {
   const { level = "info", verbose = false, pretty = false, context } = config;
-  
+
   // Pinoの設定
   const pinoConfig: pino.LoggerOptions = {
     name: context || "mcp-proxy",
@@ -41,22 +39,22 @@ export type LoggerType = "console" | "structured";
 export function createLogger(
   type: LoggerType = "console",
   verbose: boolean = false,
-  level: LogLevel = "info",
+  level: LevelWithSilent = "silent",
   context?: string,
 ): PinoLogger {
   // typeに関わらずPino loggerを使用（prettyフォーマットで区別）
   const pretty = type === "console";
-  
+
   const config: LoggerConfig = {
     level,
     verbose,
     pretty,
   };
-  
+
   if (context) {
     config.context = context;
   }
-  
+
   return createPinoLogger(config);
 }
 
@@ -75,7 +73,10 @@ export function getGlobalLogger(): PinoLogger {
 }
 
 // 便利な関数でコンテキスト付きロガーを作成
-export function createContextLogger(context: string, pretty: boolean = true): PinoLogger {
+export function createContextLogger(
+  context: string,
+  pretty: boolean = true,
+): PinoLogger {
   return createPinoLogger({
     context,
     pretty,
