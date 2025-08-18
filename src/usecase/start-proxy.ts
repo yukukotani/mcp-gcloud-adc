@@ -29,7 +29,7 @@ export async function startProxy(options: ProxyOptions): Promise<void> {
         ? "structured"
         : "file",
     config.logging.verbose,
-    config.logging.level,
+    config.logging.verbose ? config.logging.level : "silent",
     "mcp-proxy",
     config.logging.filePath,
   );
