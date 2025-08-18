@@ -5,20 +5,11 @@ import type { JSONRPCRequest } from "@modelcontextprotocol/sdk/types.js";
 import type { ProxyOptions } from "../usecase/mcp-proxy/types.js";
 
 describe("Error Scenarios", () => {
-  let mockStderr: any;
-  let mockStdout: any;
-  let mockExit: any;
 
   beforeEach(() => {
-    mockStderr = vi
-      .spyOn(process.stderr, "write")
-      .mockImplementation(() => true);
-    mockStdout = vi
-      .spyOn(process.stdout, "write")
-      .mockImplementation(() => true);
-    mockExit = vi
-      .spyOn(process, "exit")
-      .mockImplementation(() => undefined as never);
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
     vi.clearAllMocks();
   });
 
@@ -30,7 +21,8 @@ describe("Error Scenarios", () => {
     it("ADC認証情報が見つからない場合", async () => {
       vi.doMock("../libs/auth/google-auth.js", () => ({
         createAuthClient: () => ({
-          getIdToken: vi.fn().mockResolvedValue({
+          getIdToken: vi.fn(),
+        refreshToken: vi.fn().mockResolvedValue({
             type: "error",
             error: {
               kind: "no-credentials",
@@ -51,6 +43,7 @@ describe("Error Scenarios", () => {
               message: "Could not load the default credentials",
             },
           }),
+          refreshToken: vi.fn(),
         },
         httpClient: {
           post: vi.fn(),
@@ -69,13 +62,16 @@ describe("Error Scenarios", () => {
       const response = await proxy.handleRequest(request);
 
       expect(response).toHaveProperty("error");
-      expect(response.error?.code).toBe(-32603); // Internal error
-      expect(response.error?.message).toContain("Could not load the default credentials");
+      if ("error" in response) {
+        expect(response.error?.code).toBe(-32603); // Internal error
+        expect(response.error?.message).toContain("Could not load the default credentials");
+      }
     });
 
     it("IDトークンの有効期限切れ", async () => {
       const mockAuthClient = {
-        getIdToken: vi.fn().mockResolvedValue({
+        getIdToken: vi.fn(),
+        refreshToken: vi.fn().mockResolvedValue({
           type: "error",
           error: {
             kind: "token-expired",
@@ -110,7 +106,8 @@ describe("Error Scenarios", () => {
 
     it("権限不足エラー", async () => {
       const mockAuthClient = {
-        getIdToken: vi.fn().mockResolvedValue({
+        getIdToken: vi.fn(),
+        refreshToken: vi.fn().mockResolvedValue({
           type: "error",
           error: {
             kind: "insufficient-permissions",
@@ -162,7 +159,8 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
+          getIdToken: vi.fn(),
+        refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -202,7 +200,8 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
+          getIdToken: vi.fn(),
+        refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -243,7 +242,8 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
+          getIdToken: vi.fn(),
+        refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -284,7 +284,8 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
+          getIdToken: vi.fn(),
+        refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -326,7 +327,8 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
+          getIdToken: vi.fn(),
+        refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -354,7 +356,8 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
+          getIdToken: vi.fn(),
+        refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -385,6 +388,7 @@ describe("Error Scenarios", () => {
       const options: ProxyOptions = {
         url: "invalid-url",
         timeout: 30000,
+        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -395,6 +399,7 @@ describe("Error Scenarios", () => {
       const options: ProxyOptions = {
         url: "ftp://invalid-protocol.example.com", // 無効なプロトコル
         timeout: 30000,
+        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -404,6 +409,7 @@ describe("Error Scenarios", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 0, // 0ms - 無効なタイムアウト
+        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -433,7 +439,8 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
+          getIdToken: vi.fn(),
+        refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -476,7 +483,8 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
+          getIdToken: vi.fn(),
+        refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,

@@ -2,8 +2,8 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type { JSONRPCMessage, JSONRPCRequest } from "@modelcontextprotocol/sdk/types.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { McpProxy } from "../../usecase/mcp-proxy/types.js";
-import { setupMcpServer } from "./server-setup.js";
+import type { McpProxy } from "../usecase/mcp-proxy/types.js";
+import { setupMcpServer } from "./mcp-server.js";
 
 // SDK のモック
 vi.mock("@modelcontextprotocol/sdk/server/index.js", () => ({

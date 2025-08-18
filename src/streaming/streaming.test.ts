@@ -1,7 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMcpProxy } from "../usecase/mcp-proxy/handler.js";
-import { createHttpClient } from "../libs/http/http-client.js";
-import { createAuthClient } from "../libs/auth/google-auth.js";
 import type { JSONRPCRequest } from "@modelcontextprotocol/sdk/types.js";
 
 // HTTPクライアントのモック
@@ -12,6 +10,7 @@ const mockHttpClient = {
 
 const mockAuthClient = {
   getIdToken: vi.fn(),
+  refreshToken: vi.fn(),
 };
 
 // ファクトリー関数をモック
@@ -80,7 +79,7 @@ describe("Streaming Tests", () => {
       const httpClient = createHttpClient();
 
       await expect(async () => {
-        for await (const chunk of httpClient.postStream({
+        for await (const _chunk of httpClient.postStream({
           url: "https://example.com/stream",
           headers: {},
           body: { method: "test" },
@@ -177,7 +176,9 @@ describe("Streaming Tests", () => {
 
       // エラーレスポンスが返されることを確認
       expect(response).toHaveProperty("error");
-      expect(response.error?.message).toContain("Token has expired");
+      if ("error" in response) {
+        expect(response.error?.message).toContain("Token has expired");
+      }
     });
 
     it("ストリーミング中のHTTPエラーを処理する", async () => {
@@ -274,7 +275,7 @@ describe("Streaming Tests", () => {
       const httpClient = createHttpClient();
 
       await expect(async () => {
-        for await (const chunk of httpClient.postStream({
+        for await (const _chunk of httpClient.postStream({
           url: "https://example.com/stream",
           headers: {},
           body: { method: "timeout-test" },

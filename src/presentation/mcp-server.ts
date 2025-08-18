@@ -4,7 +4,7 @@ import type {
   JSONRPCMessage,
   JSONRPCRequest,
 } from "@modelcontextprotocol/sdk/types.js";
-import type { McpProxy } from "../../usecase/mcp-proxy/types.js";
+import type { McpProxy } from "../usecase/mcp-proxy/types.js";
 
 export type ServerSetupConfig = {
   name: string;

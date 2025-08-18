@@ -27,7 +27,7 @@ vi.mock("../libs/http/http-client.js", () => ({
   }),
 }));
 
-vi.mock("../libs/mcp/server-setup.js", () => ({
+vi.mock("../presentation/mcp-server.js", () => ({
   setupMcpServer: vi.fn().mockImplementation(async () => {
     // MCPサーバーの起動をシミュレートするが、実際には起動しない
     return Promise.resolve();
@@ -35,8 +35,7 @@ vi.mock("../libs/mcp/server-setup.js", () => ({
 }));
 
 // プロセスのイベントリスナーをモック
-const originalOn = process.on;
-vi.spyOn(process, 'on').mockImplementation((event: string, listener: any) => {
+vi.spyOn(process, 'on').mockImplementation((event: string | symbol, listener: any) => {
   if (event === 'SIGINT' || event === 'SIGTERM') {
     // すぐにリスナーを実行してテストを終了
     setTimeout(() => listener(), 10);
@@ -45,20 +44,11 @@ vi.spyOn(process, 'on').mockImplementation((event: string, listener: any) => {
 });
 
 describe("Proxy E2E Tests", () => {
-  let mockStderr: any;
-  let mockStdout: any;
-  let mockExit: any;
 
   beforeEach(() => {
-    mockStderr = vi
-      .spyOn(process.stderr, "write")
-      .mockImplementation(() => true);
-    mockStdout = vi
-      .spyOn(process.stdout, "write")
-      .mockImplementation(() => true);
-    mockExit = vi
-      .spyOn(process, "exit")
-      .mockImplementation(() => undefined as never);
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
     vi.clearAllMocks();
   });
 
@@ -89,6 +79,7 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 120000,
+        verbose: false,
       };
 
       const proxyPromise = startProxy(options);
@@ -110,8 +101,8 @@ describe("Proxy E2E Tests", () => {
       await proxyPromise;
 
       // ログメッセージが出力されることを確認
-      expect(mockStderr).toHaveBeenCalledWith(
-        expect.stringContaining("Starting mcp-gcloud-adc"),
+      expect(vi.mocked(process.stderr.write)).toHaveBeenCalledWith(
+        expect.stringContaining("Starting MCP proxy"),
       );
     }, 10000);
   });
@@ -121,6 +112,7 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "http://example.com", // HTTPSではない
         timeout: 30000,
+        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -130,6 +122,7 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: -1,
+        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -139,6 +132,7 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 700000, // 10分を超える
+        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -151,6 +145,7 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "invalid-url",
         timeout: 30000,
+        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -161,6 +156,7 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "http://example.com", // HTTPSではない
         timeout: 30000,
+        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -172,6 +168,7 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 30000,
+        verbose: false,
       };
 
       const proxyPromise = startProxy(options);
@@ -193,7 +190,7 @@ describe("Proxy E2E Tests", () => {
       await proxyPromise;
 
       // 非verboseモードではデバッグログが出力されないことを確認
-      expect(mockStderr).not.toHaveBeenCalledWith(
+      expect(vi.mocked(process.stderr.write)).not.toHaveBeenCalledWith(
         expect.stringContaining("Debug:"),
       );
     }, 10000);
@@ -201,11 +198,12 @@ describe("Proxy E2E Tests", () => {
 
   describe("MCPサーバー統合", () => {
     it("MCPサーバーが正しくセットアップされる", async () => {
-      const { setupMcpServer } = await import("../libs/mcp/server-setup.js");
+      const { setupMcpServer } = await import("../presentation/mcp-server.js");
       
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 30000,
+        verbose: false,
       };
 
       const proxyPromise = startProxy(options);
@@ -223,11 +221,12 @@ describe("Proxy E2E Tests", () => {
     }, 10000);
 
     it("プロキシハンドラーが正しく設定される", async () => {
-      const { setupMcpServer } = await import("../libs/mcp/server-setup.js");
+      const { setupMcpServer } = await import("../presentation/mcp-server.js");
       
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 30000,
+        verbose: false,
       };
 
       const proxyPromise = startProxy(options);
@@ -235,9 +234,10 @@ describe("Proxy E2E Tests", () => {
       
       await proxyPromise;
 
-      const setupCall = vi.mocked(setupMcpServer).mock.calls[0][0];
+      const setupCall = vi.mocked(setupMcpServer).mock.calls[0]?.[0];
+      expect(setupCall).toBeDefined();
       expect(setupCall).toHaveProperty("proxy");
-      expect(typeof setupCall.proxy.handleRequest).toBe("function");
+      expect(typeof setupCall?.proxy.handleRequest).toBe("function");
     }, 10000);
   });
 });

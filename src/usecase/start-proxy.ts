@@ -3,7 +3,7 @@ import { createConfigManager, getPackageInfo } from "../libs/config/manager.js";
 import { createErrorHandler } from "../libs/error/handler.js";
 import { createHttpClient } from "../libs/http/http-client.js";
 import { createLogger, setGlobalLogger } from "../libs/logging/logger.js";
-import { setupMcpServer } from "../libs/mcp/server-setup.js";
+import { setupMcpServer } from "../presentation/mcp-server.js";
 import { createMcpProxy } from "./mcp-proxy/handler.js";
 import type { ProxyOptions } from "./mcp-proxy/types.js";
 
