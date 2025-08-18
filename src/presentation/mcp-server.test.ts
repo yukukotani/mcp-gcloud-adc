@@ -37,6 +37,7 @@ describe("server-setup", () => {
 
     mockServer = {
       connect: vi.fn(),
+      setRequestHandler: vi.fn(),
     };
 
     mockStderr = vi
