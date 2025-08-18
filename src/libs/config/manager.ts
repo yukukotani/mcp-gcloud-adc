@@ -74,8 +74,8 @@ export class DefaultConfigManager implements ConfigManager {
     // URLの検証
     try {
       const url = new URL(config.proxy.url);
-      if (url.protocol !== "https:") {
-        errors.push("Proxy URL must use HTTPS protocol");
+      if (url.protocol !== "https:" && url.protocol !== "http:") {
+        errors.push("Proxy URL must use HTTP or HTTPS protocol");
       }
     } catch {
       errors.push("Invalid proxy URL format");
