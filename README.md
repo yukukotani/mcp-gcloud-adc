@@ -1,168 +1,171 @@
 # mcp-gcloud-adc
 
-Google Cloud Application Default Credentials (ADC) を使用して MCP サーバーにアクセスするためのプロキシツール
+A proxy tool for accessing MCP servers using Google Cloud Application Default Credentials (ADC)
 
-## 概要
+## Overview
 
-このツールは、Google Cloud の Application Default Credentials (ADC) を使用して認証を行い、Model Context Protocol (MCP) サーバーへのリクエストをプロキシします。Cloud Run などの Google Cloud サービスで動作する MCP サーバーにアクセスする際に便利です。
+This tool authenticates using Google Cloud Application Default Credentials (ADC) and proxies requests to Model Context Protocol (MCP) servers. It's particularly useful for accessing MCP servers running on Google Cloud services like Cloud Run.
 
-## 機能
+## Features
 
-- **ADC 認証**: Google Cloud の Application Default Credentials を自動的に使用
-- **MCP プロキシ**: JSON-RPC 形式の MCP リクエストを透明にプロキシ
-- **エラーハンドリング**: 認証エラー、ネットワークエラー、HTTP エラーを適切に処理
-- **CLI インターフェース**: シンプルなコマンドライン操作
+- **ADC Authentication**: Automatically uses Google Cloud Application Default Credentials
+- **MCP Proxy**: Transparently proxies JSON-RPC formatted MCP requests
+- **Error Handling**: Properly handles authentication errors, network errors, and HTTP errors
+- **CLI Interface**: Simple command-line operation
 
-## セットアップ
+## Setup
 
-### 1. 依存関係のインストール
+### 1. Install Dependencies
 
 ```bash
 bun install
 ```
 
-### 2. Google Cloud 認証の設定
+### 2. Configure Google Cloud Authentication
 
-以下のいずれかの方法で ADC を設定してください：
+Set up ADC using one of the following methods:
 
 ```bash
-# 方法1: gcloud CLI を使用してユーザー認証
+# Method 1: User authentication using gcloud CLI
 gcloud auth application-default login
 
-# 方法2: サービスアカウントキーを使用
+# Method 2: Using service account key
 export GOOGLE_APPLICATION_CREDENTIALS="path/to/service-account.json"
 ```
 
-### 3. ビルド
+### 3. Build
 
 ```bash
 bun run build
 ```
 
-## 使用方法
+## Usage
 
-### 基本的な使用法
+### Basic Usage
 
 ```bash
-# MCP プロキシを起動
+# Start MCP proxy
 bun run start --url https://your-cloud-run-service.run.app --timeout 30000
 
-# または、ビルド済みバイナリを使用
+# Or use the built binary
 node dist/index.js --url https://your-cloud-run-service.run.app --timeout 30000
 ```
 
-### パラメータ
+### Parameters
 
-- `--url`: プロキシ先の MCP サーバーの URL（必須）
-- `--timeout`: リクエストのタイムアウト時間（ミリ秒、デフォルト: 30000）
+- `--url`: URL of the target MCP server (required)
+- `--timeout`: Request timeout in milliseconds (default: 30000)
 
-### 使用例
+### Examples
 
 ```bash
-# Cloud Run サービスにプロキシする例
+# Proxy to Cloud Run service
 bun run start --url https://mcp-server-abcd1234-uw.a.run.app --timeout 10000
 
-# ローカルの HTTP サーバーにプロキシする例（認証なし）
+# Proxy to local HTTP server (no authentication)
 bun run start --url http://localhost:3000 --timeout 5000
 ```
 
-## アーキテクチャ
+## Architecture
 
-### ディレクトリ構造
+### Directory Structure
 
 ```
 src/
-├── presentation/     # プレゼンテーション層
-│   ├── cli.ts       # CLI インターフェース
-│   └── mcp-proxy-handlers.ts  # HTTP/JSON-RPC 変換
-├── usecase/         # ユースケース層
-│   └── mcp-proxy/   # プロキシのビジネスロジック
-└── libs/           # ライブラリ層
-    ├── auth/       # Google Cloud 認証
-    └── http/       # HTTP クライント
+├── presentation/     # Presentation layer
+│   ├── cli.ts       # CLI interface
+│   └── mcp-proxy-handlers.ts  # HTTP/JSON-RPC conversion
+├── usecase/         # Use case layer
+│   └── mcp-proxy/   # Proxy business logic
+└── libs/           # Library layer
+    ├── auth/       # Google Cloud authentication
+    └── http/       # HTTP client
 ```
 
-### 主要コンポーネント
+### Main Components
 
-- **CLI (`presentation/cli.ts`)**: コマンドライン引数の処理とアプリケーションの起動
-- **MCP Proxy (`usecase/mcp-proxy/`)**: 認証付きリクエストの処理とアップストリームへの転送
-- **Auth Client (`libs/auth/`)**: Google Cloud ADC を使用したID トークンの取得
-- **HTTP Client (`libs/http/`)**: HTTP リクエストの送信とエラーハンドリング
+- **CLI (`presentation/cli.ts`)**: Command-line argument processing and application startup
+- **MCP Proxy (`usecase/mcp-proxy/`)**: Authenticated request processing and upstream forwarding
+- **Auth Client (`libs/auth/`)**: ID token acquisition using Google Cloud ADC
+- **HTTP Client (`libs/http/`)**: HTTP request sending and error handling
 
-## 開発
+## Development
 
-### テストの実行
+### Running Tests
 
 ```bash
-# 全てのテストを実行
+# Run all tests
 bun test
 
-# 特定のテストファイルを実行
+# Run specific test file
 bun test src/usecase/mcp-proxy/handler.test.ts
 
-# Vitest を直接使用
+# Use Vitest directly
 bunx vitest
 ```
 
-### リントとフォーマット
+### Linting and Formatting
 
 ```bash
-# リントとタイプチェックを実行
+# Run lint and type check
 bun lint
 
-# フォーマットを修正
+# Fix formatting issues
 bun run biome check . --fix
 ```
 
-### ビルド
+### Build
 
 ```bash
-# TypeScript をコンパイル
+# Build with tsdown (fast, optimized)
 bun run build
 
-# 開発モードで監視
+# Build with TypeScript compiler (fallback)
+bun run build:tsc
+
+# Watch mode for development
 bun run dev
 ```
 
-## 認証について
+## Authentication
 
-このツールは Google Cloud の Application Default Credentials (ADC) を使用します。ADC は以下の順序で認証情報を検索します：
+This tool uses Google Cloud Application Default Credentials (ADC). ADC searches for credentials in the following order:
 
-1. `GOOGLE_APPLICATION_CREDENTIALS` 環境変数で指定されたサービスアカウントキー
-2. gcloud CLI で設定されたユーザー認証情報
-3. Google Cloud 環境（Compute Engine、Cloud Run など）のメタデータサーバー
+1. Service account key specified by the `GOOGLE_APPLICATION_CREDENTIALS` environment variable
+2. User credentials set by the gcloud CLI
+3. Metadata server in Google Cloud environments (Compute Engine, Cloud Run, etc.)
 
-詳細は [Google Cloud のドキュメント](https://cloud.google.com/docs/authentication/application-default-credentials) を参照してください。
+For more details, see the [Google Cloud documentation](https://cloud.google.com/docs/authentication/application-default-credentials).
 
-## エラーハンドリング
+## Error Handling
 
-以下のエラーが適切にハンドリングされます：
+The following errors are properly handled:
 
-- **認証エラー**: ADC 認証情報が見つからない、またはトークンが無効
-- **ネットワークエラー**: 接続失敗、タイムアウト
-- **HTTP エラー**: 4xx、5xx ステータスコード
-- **JSON-RPC エラー**: 無効なリクエスト/レスポンス形式
+- **Authentication Errors**: ADC credentials not found or invalid tokens
+- **Network Errors**: Connection failures, timeouts
+- **HTTP Errors**: 4xx, 5xx status codes
+- **JSON-RPC Errors**: Invalid request/response formats
 
-## ライセンス
+## License
 
 MIT License
 
-## 開発者向け情報
+## Developer Information
 
-### コミット規則
+### Commit Guidelines
 
-- 小さく、頻繁なコミットを推奨
-- コミットメッセージは日本語で記述
-- 各タスクごとに個別にコミット
+- Small, frequent commits are recommended
+- Commit messages should be written in Japanese
+- Create separate commits for each task
 
-### テスト駆動開発
+### Test-Driven Development
 
-- 新機能の実装前にテストを作成
-- power-assert を使用したアサーション
-- vitest を使用したテスト実行
+- Create tests before implementing new features
+- Use power-assert for assertions
+- Use vitest for test execution
 
-### コーディング規則
+### Coding Guidelines
 
-- 関数型プログラミングスタイル
-- エラーハンドリングにはtagged unionを使用
-- クラスよりも関数を優先
+- Functional programming style
+- Use tagged unions for error handling
+- Prefer functions over classes

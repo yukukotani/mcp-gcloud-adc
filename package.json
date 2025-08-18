@@ -8,7 +8,8 @@
     "mcp-gcloud-proxy": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsdown",
+    "build:tsc": "tsc",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "debug": "MCP_PROXY_LOG_LEVEL=debug mcp-inspector tsx src/index.ts",
@@ -53,6 +54,7 @@
     "concurrently": "^9.2.0",
     "knip": "^5.43.0",
     "rollup-plugin-power-assert": "^0.2.0",
+    "tsdown": "^0.14.1",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
