@@ -13,7 +13,7 @@ This is a TypeScript template for a project for Coding AI Agent.
 - You MUST commit your changes in small, frequent increments after completing each task.
 - You MUST commit each individual task separately. For example, if there are 3 tasks (A, B, C), create 3 separate commits instead of 1 combined commit.
 - You MUST mark each todo as completed immediately after committing the changes for that specific task.
-- You MUST run `pnpm lint` and ensure it passes before committing any changes.
+- You MUST run `bun lint` and ensure it passes before committing any changes.
 - You MUST write commit messages and comments in Japanese.
 
 ### Test-Driven Development
