@@ -1,5 +1,9 @@
-import type { JSONRPCMessage, JSONRPCRequest, JSONRPCResponse, JSONRPCError } from '@modelcontextprotocol/sdk/types.js';
-import type { McpProxy, ProxyConfig, RequestContext } from './types.js';
+import type {
+  JSONRPCMessage,
+  JSONRPCRequest,
+  JSONRPCResponse,
+} from "@modelcontextprotocol/sdk/types.js";
+import type { McpProxy, ProxyConfig, RequestContext } from "./types.js";
 
 export class McpProxyHandler implements McpProxy {
   constructor(private config: ProxyConfig) {}
@@ -12,18 +16,22 @@ export class McpProxyHandler implements McpProxy {
     };
 
     if (this.config.verbose) {
-      process.stderr.write(`[${context.timestamp.toISOString()}] Proxying request: ${context.method}\n`);
+      process.stderr.write(
+        `[${context.timestamp.toISOString()}] Proxying request: ${context.method}\n`,
+      );
     }
 
     try {
-      const tokenResult = await this.config.authClient.getIdToken(this.config.targetUrl);
-      
-      if (tokenResult.type === 'error') {
+      const tokenResult = await this.config.authClient.getIdToken(
+        this.config.targetUrl,
+      );
+
+      if (tokenResult.type === "error") {
         return this.createErrorResponse(
           request.id,
           -32603,
           `Authentication failed: ${tokenResult.error.message}`,
-          tokenResult.error
+          tokenResult.error,
         );
       }
 
@@ -31,29 +39,34 @@ export class McpProxyHandler implements McpProxy {
         url: this.config.targetUrl,
         headers: {
           Authorization: `Bearer ${tokenResult.token}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: request,
         timeout: this.config.timeout,
       });
 
-      if (httpResponse.type === 'error') {
-        return this.createErrorResponseFromHttpError(request.id, httpResponse.error);
+      if (httpResponse.type === "error") {
+        return this.createErrorResponseFromHttpError(
+          request.id,
+          httpResponse.error,
+        );
       }
 
       const responseData = httpResponse.data;
-      
+
       if (!this.isValidJSONRPCResponse(responseData)) {
         return this.createErrorResponse(
           request.id,
           -32603,
-          'Invalid response format from target server',
-          { received: responseData }
+          "Invalid response format from target server",
+          { received: responseData },
         );
       }
 
       if (this.config.verbose) {
-        process.stderr.write(`[${new Date().toISOString()}] Response received for: ${context.method}\n`);
+        process.stderr.write(
+          `[${new Date().toISOString()}] Response received for: ${context.method}\n`,
+        );
       }
 
       return responseData as JSONRPCResponse;
@@ -61,28 +74,34 @@ export class McpProxyHandler implements McpProxy {
       return this.createErrorResponse(
         request.id,
         -32603,
-        `Internal error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error
+        `Internal error: ${error instanceof Error ? error.message : "Unknown error"}`,
+        error,
       );
     }
   }
 
   async handleMessage(message: JSONRPCMessage): Promise<JSONRPCMessage> {
-    if ('method' in message && 'id' in message) {
+    if ("method" in message && "id" in message) {
       return await this.handleRequest(message as JSONRPCRequest);
     }
 
-    if ('method' in message && !('id' in message)) {
+    if ("method" in message && !("id" in message)) {
       if (this.config.verbose) {
-        process.stderr.write(`[${new Date().toISOString()}] Notification: ${message.method}\n`);
+        process.stderr.write(
+          `[${new Date().toISOString()}] Notification: ${message.method}\n`,
+        );
       }
-      
+
       try {
-        const tokenResult = await this.config.authClient.getIdToken(this.config.targetUrl);
-        
-        if (tokenResult.type === 'error') {
+        const tokenResult = await this.config.authClient.getIdToken(
+          this.config.targetUrl,
+        );
+
+        if (tokenResult.type === "error") {
           if (this.config.verbose) {
-            process.stderr.write(`Authentication failed for notification: ${tokenResult.error.message}\n`);
+            process.stderr.write(
+              `Authentication failed for notification: ${tokenResult.error.message}\n`,
+            );
           }
           return message;
         }
@@ -91,7 +110,7 @@ export class McpProxyHandler implements McpProxy {
           url: this.config.targetUrl,
           headers: {
             Authorization: `Bearer ${tokenResult.token}`,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: message,
           timeout: this.config.timeout,
@@ -100,7 +119,9 @@ export class McpProxyHandler implements McpProxy {
         return message;
       } catch (error) {
         if (this.config.verbose) {
-          process.stderr.write(`Failed to forward notification: ${error instanceof Error ? error.message : 'Unknown error'}\n`);
+          process.stderr.write(
+            `Failed to forward notification: ${error instanceof Error ? error.message : "Unknown error"}\n`,
+          );
         }
         return message;
       }
@@ -110,40 +131,40 @@ export class McpProxyHandler implements McpProxy {
   }
 
   private isValidJSONRPCResponse(data: unknown): data is JSONRPCResponse {
-    if (!data || typeof data !== 'object') {
+    if (!data || typeof data !== "object") {
       return false;
     }
 
     const obj = data as any;
-    
-    if (obj.jsonrpc !== '2.0') {
+
+    if (obj.jsonrpc !== "2.0") {
       return false;
     }
 
-    if (!('id' in obj)) {
+    if (!("id" in obj)) {
       return false;
     }
 
-    return ('result' in obj) || ('error' in obj);
+    return "result" in obj || "error" in obj;
   }
 
   private createErrorResponse(
     id: string | number | null,
     code: number,
     message: string,
-    data?: unknown
-  ): JSONRPCResponse {
-    const error: JSONRPCError = {
+    data?: unknown,
+  ): any {
+    const error: any = {
       code,
       message,
     };
-    
+
     if (data) {
-      (error as any).data = data;
+      error.data = data;
     }
 
     return {
-      jsonrpc: '2.0',
+      jsonrpc: "2.0",
       id: id as string | number,
       error,
     };
@@ -151,26 +172,26 @@ export class McpProxyHandler implements McpProxy {
 
   private createErrorResponseFromHttpError(
     id: string | number | null,
-    httpError: any
+    httpError: any,
   ): JSONRPCResponse {
     switch (httpError.kind) {
-      case 'network-error':
+      case "network-error":
         return this.createErrorResponse(
           id,
           -32603,
           `Network error: ${httpError.message}`,
-          { kind: httpError.kind }
+          { kind: httpError.kind },
         );
-      
-      case 'timeout':
+
+      case "timeout":
         return this.createErrorResponse(
           id,
           -32603,
           `Request timeout: ${httpError.message}`,
-          { kind: httpError.kind }
+          { kind: httpError.kind },
         );
-      
-      case 'http-error':
+
+      case "http-error": {
         const code = this.mapHttpStatusToJsonRpcCode(httpError.status);
         return this.createErrorResponse(
           id,
@@ -180,23 +201,24 @@ export class McpProxyHandler implements McpProxy {
             kind: httpError.kind,
             status: httpError.status,
             body: httpError.body,
-          }
+          },
         );
-      
-      case 'parse-error':
+      }
+
+      case "parse-error":
         return this.createErrorResponse(
           id,
           -32700,
           `Parse error: ${httpError.message}`,
-          { kind: httpError.kind }
+          { kind: httpError.kind },
         );
-      
+
       default:
         return this.createErrorResponse(
           id,
           -32603,
           `Unknown HTTP error: ${httpError.message}`,
-          httpError
+          httpError,
         );
     }
   }

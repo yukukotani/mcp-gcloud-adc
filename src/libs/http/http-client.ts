@@ -1,4 +1,9 @@
-import type { HttpClient, HttpRequestConfig, HttpResponse, StreamChunk } from './types.js';
+import type {
+  HttpClient,
+  HttpRequestConfig,
+  HttpResponse,
+  StreamChunk,
+} from "./types.js";
 
 export class FetchHttpClient implements HttpClient {
   async post(config: HttpRequestConfig): Promise<HttpResponse> {
@@ -7,9 +12,9 @@ export class FetchHttpClient implements HttpClient {
 
     try {
       const response = await fetch(config.url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...config.headers,
         },
         body: JSON.stringify(config.body),
@@ -23,9 +28,9 @@ export class FetchHttpClient implements HttpClient {
       if (!response.ok) {
         const errorBody = await this.safeReadResponseText(response);
         return {
-          type: 'error',
+          type: "error",
           error: {
-            kind: 'http-error',
+            kind: "http-error",
             status: response.status,
             message: `HTTP ${response.status} ${response.statusText}`,
             body: errorBody,
@@ -36,16 +41,16 @@ export class FetchHttpClient implements HttpClient {
       const data = await this.parseJsonResponse(response);
       if (data === null) {
         return {
-          type: 'error',
+          type: "error",
           error: {
-            kind: 'parse-error',
-            message: 'Failed to parse response as JSON',
+            kind: "parse-error",
+            message: "Failed to parse response as JSON",
           },
         };
       }
 
       return {
-        type: 'success',
+        type: "success",
         data,
         status: response.status,
         headers: responseHeaders,
@@ -54,20 +59,20 @@ export class FetchHttpClient implements HttpClient {
       clearTimeout(timeoutId);
 
       if (error instanceof Error) {
-        if (error.name === 'AbortError') {
+        if (error.name === "AbortError") {
           return {
-            type: 'error',
+            type: "error",
             error: {
-              kind: 'timeout',
+              kind: "timeout",
               message: `Request timed out after ${config.timeout}ms`,
             },
           };
         }
 
         return {
-          type: 'error',
+          type: "error",
           error: {
-            kind: 'network-error',
+            kind: "network-error",
             message: error.message,
             originalError: error,
           },
@@ -75,25 +80,25 @@ export class FetchHttpClient implements HttpClient {
       }
 
       return {
-        type: 'error',
+        type: "error",
         error: {
-          kind: 'network-error',
-          message: 'Unknown network error',
+          kind: "network-error",
+          message: "Unknown network error",
           originalError: error,
         },
       };
     }
   }
 
-  async* postStream(config: HttpRequestConfig): AsyncIterable<StreamChunk> {
+  async *postStream(config: HttpRequestConfig): AsyncIterable<StreamChunk> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), config.timeout);
 
     try {
       const response = await fetch(config.url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...config.headers,
         },
         body: JSON.stringify(config.body),
@@ -104,16 +109,18 @@ export class FetchHttpClient implements HttpClient {
 
       if (!response.ok) {
         const errorBody = await this.safeReadResponseText(response);
-        throw new Error(`HTTP ${response.status} ${response.statusText}: ${errorBody}`);
+        throw new Error(
+          `HTTP ${response.status} ${response.statusText}: ${errorBody}`,
+        );
       }
 
       if (!response.body) {
-        throw new Error('Response body is null');
+        throw new Error("Response body is null");
       }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let buffer = '';
+      let buffer = "";
 
       try {
         while (true) {
@@ -130,10 +137,10 @@ export class FetchHttpClient implements HttpClient {
           }
 
           buffer += decoder.decode(value, { stream: true });
-          
+
           // 行ごとに分割してストリーミング
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || ''; // 最後の不完全な行は保持
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || ""; // 最後の不完全な行は保持
 
           for (const line of lines) {
             if (line.trim()) {
@@ -150,7 +157,7 @@ export class FetchHttpClient implements HttpClient {
     } catch (error) {
       clearTimeout(timeoutId);
 
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && error.name === "AbortError") {
         throw new Error(`Request timed out after ${config.timeout}ms`);
       }
 
@@ -170,7 +177,7 @@ export class FetchHttpClient implements HttpClient {
     try {
       return await response.text();
     } catch {
-      return '';
+      return "";
     }
   }
 

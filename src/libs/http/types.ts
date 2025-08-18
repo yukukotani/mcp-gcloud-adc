@@ -11,14 +11,19 @@ export type HttpRequestConfig = {
 };
 
 export type HttpResponse =
-  | { type: 'success'; data: unknown; status: number; headers: Record<string, string> }
-  | { type: 'error'; error: HttpError };
+  | {
+      type: "success";
+      data: unknown;
+      status: number;
+      headers: Record<string, string>;
+    }
+  | { type: "error"; error: HttpError };
 
 export type HttpError =
-  | { kind: 'network-error'; message: string; originalError?: unknown }
-  | { kind: 'timeout'; message: string }
-  | { kind: 'http-error'; status: number; message: string; body?: string }
-  | { kind: 'parse-error'; message: string; originalError?: unknown };
+  | { kind: "network-error"; message: string; originalError?: unknown }
+  | { kind: "timeout"; message: string }
+  | { kind: "http-error"; status: number; message: string; body?: string }
+  | { kind: "parse-error"; message: string; originalError?: unknown };
 
 export type StreamChunk = {
   data: string;

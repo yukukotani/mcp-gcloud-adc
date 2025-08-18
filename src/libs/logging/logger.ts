@@ -1,4 +1,4 @@
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = "debug" | "info" | "warn" | "error";
 
 export type LogEntry = {
   level: LogLevel;
@@ -18,7 +18,7 @@ export type Logger = {
 };
 
 export class ConsoleLogger implements Logger {
-  private currentLevel: LogLevel = 'info';
+  private currentLevel: LogLevel = "info";
   private context?: string;
 
   private readonly levelPriority: Record<LogLevel, number> = {
@@ -30,25 +30,25 @@ export class ConsoleLogger implements Logger {
 
   constructor(
     private verbose: boolean = false,
-    initialLevel: LogLevel = 'info'
+    initialLevel: LogLevel = "info",
   ) {
     this.currentLevel = initialLevel;
   }
 
   debug(message: string, data?: unknown): void {
-    this.log('debug', message, data);
+    this.log("debug", message, data);
   }
 
   info(message: string, data?: unknown): void {
-    this.log('info', message, data);
+    this.log("info", message, data);
   }
 
   warn(message: string, data?: unknown): void {
-    this.log('warn', message, data);
+    this.log("warn", message, data);
   }
 
   error(message: string, data?: unknown): void {
-    this.log('error', message, data);
+    this.log("error", message, data);
   }
 
   setLevel(level: LogLevel): void {
@@ -70,7 +70,7 @@ export class ConsoleLogger implements Logger {
       timestamp: new Date(),
       data,
     };
-    
+
     if (this.context) {
       entry.context = this.context;
     }
@@ -79,30 +79,36 @@ export class ConsoleLogger implements Logger {
   }
 
   private shouldLog(level: LogLevel): boolean {
-    if (level === 'debug' && !this.verbose) {
+    if (level === "debug" && !this.verbose) {
       return false;
     }
-    
+
     return this.levelPriority[level] >= this.levelPriority[this.currentLevel];
   }
 
   private writeLog(entry: LogEntry): void {
     const timestamp = entry.timestamp.toISOString();
-    const contextStr = entry.context ? ` [${entry.context}]` : '';
+    const contextStr = entry.context ? ` [${entry.context}]` : "";
     const levelStr = entry.level.toUpperCase().padEnd(5);
-    
+
     const logMessage = `[${timestamp}]${contextStr} ${levelStr}: ${entry.message}`;
-    
+
     // エラーと警告はstderrに、その他はstderrに出力（MCPプロトコルでstdoutは使用されるため）
-    const output = entry.level === 'error' || entry.level === 'warn' ? process.stderr : process.stderr;
-    
+    const output =
+      entry.level === "error" || entry.level === "warn"
+        ? process.stderr
+        : process.stderr;
+
     output.write(`${logMessage}\n`);
-    
+
     if (this.verbose && entry.data !== undefined) {
-      const dataStr = typeof entry.data === 'string' 
-        ? entry.data 
-        : JSON.stringify(entry.data, null, 2);
-      output.write(`[${timestamp}]${contextStr} ${levelStr} Data: ${dataStr}\n`);
+      const dataStr =
+        typeof entry.data === "string"
+          ? entry.data
+          : JSON.stringify(entry.data, null, 2);
+      output.write(
+        `[${timestamp}]${contextStr} ${levelStr} Data: ${dataStr}\n`,
+      );
     }
   }
 }
@@ -118,7 +124,7 @@ export type StructuredLogEntry = {
 };
 
 export class StructuredLogger implements Logger {
-  private currentLevel: LogLevel = 'info';
+  private currentLevel: LogLevel = "info";
   private context?: string;
 
   private readonly levelPriority: Record<LogLevel, number> = {
@@ -130,25 +136,25 @@ export class StructuredLogger implements Logger {
 
   constructor(
     private verbose: boolean = false,
-    initialLevel: LogLevel = 'info'
+    initialLevel: LogLevel = "info",
   ) {
     this.currentLevel = initialLevel;
   }
 
   debug(message: string, data?: unknown): void {
-    this.log('debug', message, data);
+    this.log("debug", message, data);
   }
 
   info(message: string, data?: unknown): void {
-    this.log('info', message, data);
+    this.log("info", message, data);
   }
 
   warn(message: string, data?: unknown): void {
-    this.log('warn', message, data);
+    this.log("warn", message, data);
   }
 
   error(message: string, data?: unknown): void {
-    this.log('error', message, data);
+    this.log("error", message, data);
   }
 
   setLevel(level: LogLevel): void {
@@ -169,13 +175,13 @@ export class StructuredLogger implements Logger {
       level,
       message,
       pid: process.pid,
-      hostname: process.env.HOSTNAME || 'unknown',
+      hostname: process.env.HOSTNAME || "unknown",
     };
-    
+
     if (this.context) {
       entry.context = this.context;
     }
-    
+
     if (this.verbose && data !== undefined) {
       entry.data = data;
     }
@@ -184,16 +190,19 @@ export class StructuredLogger implements Logger {
   }
 
   private shouldLog(level: LogLevel): boolean {
-    if (level === 'debug' && !this.verbose) {
+    if (level === "debug" && !this.verbose) {
       return false;
     }
-    
+
     return this.levelPriority[level] >= this.levelPriority[this.currentLevel];
   }
 
   private writeStructuredLog(entry: StructuredLogEntry): void {
-    const output = entry.level === 'error' || entry.level === 'warn' ? process.stderr : process.stderr;
-    
+    const output =
+      entry.level === "error" || entry.level === "warn"
+        ? process.stderr
+        : process.stderr;
+
     try {
       const logString = JSON.stringify(entry);
       output.write(`${logString}\n`);
@@ -205,17 +214,17 @@ export class StructuredLogger implements Logger {
   }
 }
 
-export type LoggerType = 'console' | 'structured';
+export type LoggerType = "console" | "structured";
 
 export function createLogger(
-  type: LoggerType = 'console',
+  type: LoggerType = "console",
   verbose: boolean = false,
-  level: LogLevel = 'info'
+  level: LogLevel = "info",
 ): Logger {
   switch (type) {
-    case 'structured':
+    case "structured":
       return new StructuredLogger(verbose, level);
-    case 'console':
+    case "console":
     default:
       return new ConsoleLogger(verbose, level);
   }
@@ -230,7 +239,7 @@ export function setGlobalLogger(logger: Logger): void {
 
 export function getGlobalLogger(): Logger {
   if (!globalLogger) {
-    globalLogger = createLogger('console', false, 'info');
+    globalLogger = createLogger("console", false, "info");
   }
   return globalLogger;
 }

@@ -1,26 +1,46 @@
-import type { 
-  InitializeRequestSchema,
-  ListToolsRequestSchema,
-  CallToolRequestSchema,
-  ListResourcesRequestSchema,
-  ReadResourceRequestSchema,
-  ListPromptsRequestSchema,
-  GetPromptRequestSchema,
-  SetLevelRequestSchema,
+import type {
   JSONRPCRequest,
-  JSONRPCResponse
-} from '@modelcontextprotocol/sdk/types.js';
-import type { McpProxy } from '../../usecase/mcp-proxy/types.js';
+  JSONRPCResponse,
+} from "@modelcontextprotocol/sdk/types.js";
+
+// Schema imports for validation - currently unused but reserved for future implementation
+// import type {
+//   InitializeRequestSchema,
+//   ListToolsRequestSchema,
+//   CallToolRequestSchema,
+//   ListResourcesRequestSchema,
+//   ReadResourceRequestSchema,
+//   ListPromptsRequestSchema,
+//   GetPromptRequestSchema,
+//   SetLevelRequestSchema,
+// } from '@modelcontextprotocol/sdk/types.js';
+import type { McpProxy } from "../../usecase/mcp-proxy/types.js";
 
 export type RequestHandlerFactory = {
-  createInitializeHandler: (proxy: McpProxy) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
-  createToolsListHandler: (proxy: McpProxy) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
-  createToolsCallHandler: (proxy: McpProxy) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
-  createResourcesListHandler: (proxy: McpProxy) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
-  createResourcesReadHandler: (proxy: McpProxy) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
-  createPromptsListHandler: (proxy: McpProxy) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
-  createPromptsGetHandler: (proxy: McpProxy) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
-  createLoggingSetLevelHandler: (proxy: McpProxy) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
+  createInitializeHandler: (
+    proxy: McpProxy,
+  ) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
+  createToolsListHandler: (
+    proxy: McpProxy,
+  ) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
+  createToolsCallHandler: (
+    proxy: McpProxy,
+  ) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
+  createResourcesListHandler: (
+    proxy: McpProxy,
+  ) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
+  createResourcesReadHandler: (
+    proxy: McpProxy,
+  ) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
+  createPromptsListHandler: (
+    proxy: McpProxy,
+  ) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
+  createPromptsGetHandler: (
+    proxy: McpProxy,
+  ) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
+  createLoggingSetLevelHandler: (
+    proxy: McpProxy,
+  ) => (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
 };
 
 export const requestHandlerFactory: RequestHandlerFactory = {
@@ -74,8 +94,12 @@ export const requestHandlerFactory: RequestHandlerFactory = {
 };
 
 export type NotificationHandlerFactory = {
-  createCancelledHandler: (proxy: McpProxy) => (notification: any) => Promise<void>;
-  createProgressHandler: (proxy: McpProxy) => (notification: any) => Promise<void>;
+  createCancelledHandler: (
+    proxy: McpProxy,
+  ) => (notification: any) => Promise<void>;
+  createProgressHandler: (
+    proxy: McpProxy,
+  ) => (notification: any) => Promise<void>;
 };
 
 export const notificationHandlerFactory: NotificationHandlerFactory = {
@@ -100,19 +124,32 @@ export type HandlerRegistrationConfig = {
 export function createAllHandlers(config: HandlerRegistrationConfig) {
   return {
     initialize: requestHandlerFactory.createInitializeHandler(config.proxy),
-    'tools/list': requestHandlerFactory.createToolsListHandler(config.proxy),
-    'tools/call': requestHandlerFactory.createToolsCallHandler(config.proxy),
-    'resources/list': requestHandlerFactory.createResourcesListHandler(config.proxy),
-    'resources/read': requestHandlerFactory.createResourcesReadHandler(config.proxy),
-    'prompts/list': requestHandlerFactory.createPromptsListHandler(config.proxy),
-    'prompts/get': requestHandlerFactory.createPromptsGetHandler(config.proxy),
-    'logging/setLevel': requestHandlerFactory.createLoggingSetLevelHandler(config.proxy),
+    "tools/list": requestHandlerFactory.createToolsListHandler(config.proxy),
+    "tools/call": requestHandlerFactory.createToolsCallHandler(config.proxy),
+    "resources/list": requestHandlerFactory.createResourcesListHandler(
+      config.proxy,
+    ),
+    "resources/read": requestHandlerFactory.createResourcesReadHandler(
+      config.proxy,
+    ),
+    "prompts/list": requestHandlerFactory.createPromptsListHandler(
+      config.proxy,
+    ),
+    "prompts/get": requestHandlerFactory.createPromptsGetHandler(config.proxy),
+    "logging/setLevel": requestHandlerFactory.createLoggingSetLevelHandler(
+      config.proxy,
+    ),
   };
 }
 
-export function createAllNotificationHandlers(config: HandlerRegistrationConfig) {
+export function createAllNotificationHandlers(
+  config: HandlerRegistrationConfig,
+) {
   return {
-    'notifications/cancelled': notificationHandlerFactory.createCancelledHandler(config.proxy),
-    'notifications/progress': notificationHandlerFactory.createProgressHandler(config.proxy),
+    "notifications/cancelled":
+      notificationHandlerFactory.createCancelledHandler(config.proxy),
+    "notifications/progress": notificationHandlerFactory.createProgressHandler(
+      config.proxy,
+    ),
   };
 }

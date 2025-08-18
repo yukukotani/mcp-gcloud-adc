@@ -1,6 +1,10 @@
-import type { JSONRPCMessage, JSONRPCRequest, JSONRPCResponse } from '@modelcontextprotocol/sdk/types.js';
-import type { AuthClient } from '../../libs/auth/types.js';
-import type { HttpClient } from '../../libs/http/types.js';
+import type {
+  JSONRPCMessage,
+  JSONRPCRequest,
+  JSONRPCResponse,
+} from "@modelcontextprotocol/sdk/types.js";
+import type { AuthClient } from "../../libs/auth/types.js";
+import type { HttpClient } from "../../libs/http/types.js";
 
 export type McpProxy = {
   handleRequest: (request: JSONRPCRequest) => Promise<JSONRPCResponse>;
@@ -28,8 +32,8 @@ export type ProxyError = {
 };
 
 export type ProxyResult<T = unknown> =
-  | { type: 'success'; data: T }
-  | { type: 'error'; error: ProxyError };
+  | { type: "success"; data: T }
+  | { type: "error"; error: ProxyError };
 
 export type RequestContext = {
   requestId: string | number | null;

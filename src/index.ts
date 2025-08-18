@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-import { runCli } from './presentation/cli.js';
+import { runCli } from "./presentation/cli.js";
 
 async function main(): Promise<void> {
   try {
     await runCli();
   } catch (error) {
-    process.stderr.write(`Fatal error: ${error instanceof Error ? error.message : 'Unknown error'}\n`);
+    process.stderr.write(
+      `Fatal error: ${error instanceof Error ? error.message : "Unknown error"}\n`,
+    );
     process.exit(1);
   }
 }
