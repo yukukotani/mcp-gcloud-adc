@@ -68,15 +68,13 @@ export function validateCliOptions(options: CliOptions): void {
 export async function executeProxyCommand(options: CliOptions): Promise<void> {
   validateCliOptions(options);
 
-  try {
-    await startProxy({
-      url: options.url,
-      timeout: options.timeout,
-    });
-  } catch (error) {
-    process.stderr.write(
-      `Failed to start proxy: ${error instanceof Error ? error.message : "Unknown error"}\n`,
-    );
+  const result = await startProxy({
+    url: options.url,
+    timeout: options.timeout,
+  });
+
+  if (result.type === "error") {
+    process.stderr.write(`Failed to start proxy: ${result.error.message}\n`);
     process.exit(1);
   }
 }

@@ -19,7 +19,7 @@
     "test:coverage": "vitest --coverage",
     "lint:biome": "biome check .",
     "lint:tsc": "tsc --noEmit",
-    "lint": "pnpm run '/^lint:/'",
+    "lint": "pnpm run --stream '/^lint:/'",
     "fix": "biome check --write ."
   },
   "keywords": [

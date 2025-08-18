@@ -89,7 +89,7 @@ describe("CLI", () => {
         url: "https://example.com",
         timeout: 60000,
       };
-      vi.mocked(startProxy).mockResolvedValue(undefined);
+      vi.mocked(startProxy).mockResolvedValue({ type: "success" });
 
       await executeProxyCommand(options);
 
@@ -101,7 +101,7 @@ describe("CLI", () => {
         url: "https://example.com",
         timeout: 120000,
       };
-      vi.mocked(startProxy).mockResolvedValue(undefined);
+      vi.mocked(startProxy).mockResolvedValue({ type: "success" });
 
       await executeProxyCommand(options);
 
@@ -117,7 +117,10 @@ describe("CLI", () => {
         url: "https://example.com",
         timeout: 120000,
       };
-      vi.mocked(startProxy).mockRejectedValue(new Error("Connection failed"));
+      vi.mocked(startProxy).mockResolvedValue({
+        type: "error",
+        error: { kind: "connection-error", message: "Connection failed" },
+      });
 
       await executeProxyCommand(options);
 
@@ -132,7 +135,10 @@ describe("CLI", () => {
         url: "https://example.com",
         timeout: 120000,
       };
-      vi.mocked(startProxy).mockRejectedValue("string error");
+      vi.mocked(startProxy).mockResolvedValue({
+        type: "error",
+        error: { kind: "unknown-error", message: "Unknown error" },
+      });
 
       await executeProxyCommand(options);
 

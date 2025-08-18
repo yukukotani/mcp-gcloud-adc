@@ -4,17 +4,29 @@ import { setupSimpleMcpServer } from "../presentation/mcp-server-simple.js";
 import { createMcpProxy } from "./mcp-proxy/handler.js";
 import type { ProxyOptions } from "./mcp-proxy/types.js";
 
-export async function startProxy(options: ProxyOptions): Promise<void> {
+export type StartProxyResult =
+  | { type: "success" }
+  | { type: "error"; error: { kind: string; message: string } };
+
+export async function startProxy(
+  options: ProxyOptions,
+): Promise<StartProxyResult> {
   // URLの検証
   if (!options.url) {
-    throw new Error("URL is required");
+    return {
+      type: "error",
+      error: { kind: "validation-error", message: "URL is required" },
+    };
   }
 
   if (
     !options.url.startsWith("https://") &&
     !options.url.startsWith("http://")
   ) {
-    throw new Error("URL must be HTTP or HTTPS");
+    return {
+      type: "error",
+      error: { kind: "validation-error", message: "URL must be HTTP or HTTPS" },
+    };
   }
 
   try {
@@ -47,10 +59,17 @@ export async function startProxy(options: ProxyOptions): Promise<void> {
       process.on("SIGINT", resolve);
       process.on("SIGTERM", resolve);
     });
+
+    return { type: "success" };
   } catch (error) {
-    throw new Error(
-      error instanceof Error ? error.message : "Failed to start proxy",
-    );
+    return {
+      type: "error",
+      error: {
+        kind: "initialization-error",
+        message:
+          error instanceof Error ? error.message : "Failed to start proxy",
+      },
+    };
   }
 }
 

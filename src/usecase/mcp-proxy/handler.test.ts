@@ -5,14 +5,14 @@ import type {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthClient } from "../../libs/auth/types.js";
 import type { HttpClient } from "../../libs/http/types.js";
-import { createMcpProxy, McpProxyHandler } from "./handler.js";
+import { createMcpProxy } from "./handler.js";
 import type { ProxyConfig } from "./types.js";
 
-describe("McpProxyHandler", () => {
+describe("McpProxy", () => {
   let mockAuthClient: AuthClient;
   let mockHttpClient: HttpClient;
   let config: ProxyConfig;
-  let proxy: McpProxyHandler;
+  let proxy: ReturnType<typeof createMcpProxy>;
 
   beforeEach(() => {
     mockAuthClient = {
@@ -32,7 +32,7 @@ describe("McpProxyHandler", () => {
       httpClient: mockHttpClient,
     };
 
-    proxy = new McpProxyHandler(config);
+    proxy = createMcpProxy(config);
   });
 
   describe("handleRequest", () => {
@@ -359,7 +359,7 @@ describe("McpProxyHandler", () => {
 });
 
 describe("createMcpProxy", () => {
-  it("McpProxyHandlerのインスタンスを作成する", () => {
+  it("McpProxyのインスタンスを作成する", () => {
     const config: ProxyConfig = {
       targetUrl: "https://example.com/api",
       timeout: 5000,
@@ -368,6 +368,8 @@ describe("createMcpProxy", () => {
     };
 
     const proxy = createMcpProxy(config);
-    expect(proxy).toBeInstanceOf(McpProxyHandler);
+    expect(proxy).toBeTruthy();
+    expect(typeof proxy.handleRequest).toBe("function");
+    expect(typeof proxy.handleMessage).toBe("function");
   });
 });

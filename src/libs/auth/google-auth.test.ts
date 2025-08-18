@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createAuthClient, GoogleAuthClient } from "./google-auth.js";
+import { createAuthClient } from "./google-auth.js";
 import type { AuthConfig } from "./types.js";
 
 // Google Auth Libraryのモック
@@ -12,7 +12,7 @@ vi.mock("google-auth-library", () => ({
   })),
 }));
 
-describe("GoogleAuthClient", () => {
+describe("AuthClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -34,7 +34,7 @@ describe("GoogleAuthClient", () => {
       mockGetClient.mockResolvedValue(mockClient);
       mockFetchIdToken.mockResolvedValue(mockToken);
 
-      const authClient = new GoogleAuthClient();
+      const authClient = createAuthClient();
       const result = await authClient.getIdToken("https://example.com");
 
       expect(result.type).toBe("success");
@@ -45,7 +45,7 @@ describe("GoogleAuthClient", () => {
     });
 
     it("無効なaudienceを拒否する", async () => {
-      const authClient = new GoogleAuthClient();
+      const authClient = createAuthClient();
 
       const invalidAudiences = [
         "http://example.com",
@@ -65,7 +65,7 @@ describe("GoogleAuthClient", () => {
     it("クレデンシャルがない場合にエラーを返す", async () => {
       mockGetClient.mockResolvedValue(null);
 
-      const authClient = new GoogleAuthClient();
+      const authClient = createAuthClient();
       const result = await authClient.getIdToken("https://example.com");
 
       expect(result.type).toBe("error");
@@ -79,7 +79,7 @@ describe("GoogleAuthClient", () => {
       const mockClient = {}; // fetchIdTokenメソッドなし
       mockGetClient.mockResolvedValue(mockClient);
 
-      const authClient = new GoogleAuthClient();
+      const authClient = createAuthClient();
       const result = await authClient.getIdToken("https://example.com");
 
       expect(result.type).toBe("error");
@@ -99,7 +99,7 @@ describe("GoogleAuthClient", () => {
       mockGetClient.mockResolvedValue(mockClient);
       mockFetchIdToken.mockRejectedValue(new Error("Network error"));
 
-      const authClient = new GoogleAuthClient();
+      const authClient = createAuthClient();
       const result = await authClient.getIdToken("https://example.com");
 
       expect(result.type).toBe("error");
@@ -120,7 +120,7 @@ describe("GoogleAuthClient", () => {
       mockGetClient.mockResolvedValue(mockClient);
       mockFetchIdToken.mockResolvedValue(mockToken);
 
-      const authClient = new GoogleAuthClient();
+      const authClient = createAuthClient();
 
       // 最初の呼び出し
       const result1 = await authClient.getIdToken("https://example.com");
@@ -151,7 +151,7 @@ describe("GoogleAuthClient", () => {
         .mockResolvedValueOnce(expiredToken)
         .mockResolvedValueOnce(newToken);
 
-      const authClient = new GoogleAuthClient();
+      const authClient = createAuthClient();
 
       // 最初の呼び出し（期限切れトークン）
       await authClient.getIdToken("https://example.com");
@@ -184,7 +184,7 @@ describe("GoogleAuthClient", () => {
         .mockResolvedValueOnce(token1)
         .mockResolvedValueOnce(token2);
 
-      const authClient = new GoogleAuthClient();
+      const authClient = createAuthClient();
 
       // 最初にトークンを取得
       await authClient.getIdToken("https://example.com");
@@ -201,18 +201,22 @@ describe("GoogleAuthClient", () => {
 });
 
 describe("createAuthClient", () => {
-  it("GoogleAuthClientのインスタンスを作成する", () => {
+  it("AuthClientのインスタンスを作成する", () => {
     const config: AuthConfig = {
       credentialsPath: "/path/to/credentials.json",
       projectId: "my-project",
     };
 
     const client = createAuthClient(config);
-    expect(client).toBeInstanceOf(GoogleAuthClient);
+    expect(client).toBeTruthy();
+    expect(typeof client.getIdToken).toBe("function");
+    expect(typeof client.refreshToken).toBe("function");
   });
 
   it("設定なしでクライアントを作成する", () => {
     const client = createAuthClient();
-    expect(client).toBeInstanceOf(GoogleAuthClient);
+    expect(client).toBeTruthy();
+    expect(typeof client.getIdToken).toBe("function");
+    expect(typeof client.refreshToken).toBe("function");
   });
 });

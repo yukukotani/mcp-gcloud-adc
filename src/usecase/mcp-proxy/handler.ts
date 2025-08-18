@@ -5,223 +5,218 @@ import type {
 } from "@modelcontextprotocol/sdk/types.js";
 import type { McpProxy, ProxyConfig } from "./types.js";
 
-export class McpProxyHandler implements McpProxy {
-  constructor(private config: ProxyConfig) {}
+const isValidJSONRPCResponse = (data: unknown): data is JSONRPCResponse => {
+  if (!data || typeof data !== "object") {
+    return false;
+  }
 
-  async handleRequest(request: JSONRPCRequest): Promise<JSONRPCResponse> {
+  const obj = data as any;
+
+  if (obj.jsonrpc !== "2.0") {
+    return false;
+  }
+
+  if (!("id" in obj)) {
+    return false;
+  }
+
+  return "result" in obj || "error" in obj;
+};
+
+const createErrorResponse = (
+  id: string | number | null,
+  code: number,
+  message: string,
+  data?: unknown,
+): any => {
+  const error: any = {
+    code,
+    message,
+  };
+
+  if (data) {
+    error.data = data;
+  }
+
+  return {
+    jsonrpc: "2.0",
+    id: id as string | number,
+    error,
+  };
+};
+
+const mapHttpStatusToJsonRpcCode = (status: number): number => {
+  if (status === 401 || status === 403) {
+    return -32002; // Invalid params (authentication/authorization)
+  }
+  if (status === 404) {
+    return -32601; // Method not found
+  }
+  if (status >= 400 && status < 500) {
+    return -32602; // Invalid params
+  }
+  if (status >= 500) {
+    return -32603; // Internal error
+  }
+  return -32603; // Default to internal error
+};
+
+const createErrorResponseFromHttpError = (
+  id: string | number | null,
+  httpError: any,
+): JSONRPCResponse => {
+  switch (httpError.kind) {
+    case "network-error":
+      return createErrorResponse(
+        id,
+        -32603,
+        `Network error: ${httpError.message}`,
+        { kind: httpError.kind },
+      );
+
+    case "timeout":
+      return createErrorResponse(
+        id,
+        -32603,
+        `Request timeout: ${httpError.message}`,
+        { kind: httpError.kind },
+      );
+
+    case "http-error": {
+      const code = mapHttpStatusToJsonRpcCode(httpError.status);
+      return createErrorResponse(id, code, `HTTP error: ${httpError.message}`, {
+        kind: httpError.kind,
+        status: httpError.status,
+        body: httpError.body,
+      });
+    }
+
+    case "parse-error":
+      return createErrorResponse(
+        id,
+        -32700,
+        `Parse error: ${httpError.message}`,
+        { kind: httpError.kind },
+      );
+
+    default:
+      return createErrorResponse(
+        id,
+        -32603,
+        `Unknown HTTP error: ${httpError.message}`,
+        httpError,
+      );
+  }
+};
+
+const handleRequest = async (
+  config: ProxyConfig,
+  request: JSONRPCRequest,
+): Promise<JSONRPCResponse> => {
+  try {
+    // HTTP URL（主にテスト用）の場合は認証をスキップ
+    const isHttpUrl = config.targetUrl.startsWith("http://");
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+    };
+
+    if (!isHttpUrl) {
+      const tokenResult = await config.authClient.getIdToken(config.targetUrl);
+
+      if (tokenResult.type === "error") {
+        return createErrorResponse(
+          request.id,
+          -32603,
+          `Authentication failed: ${tokenResult.error.message}`,
+          tokenResult.error,
+        );
+      }
+
+      headers.Authorization = `Bearer ${tokenResult.token}`;
+    }
+
+    const httpResponse = await config.httpClient.post({
+      url: config.targetUrl,
+      headers,
+      body: request,
+      timeout: config.timeout,
+    });
+
+    if (httpResponse.type === "error") {
+      return createErrorResponseFromHttpError(request.id, httpResponse.error);
+    }
+
+    const responseData = httpResponse.data;
+
+    if (!isValidJSONRPCResponse(responseData)) {
+      return createErrorResponse(
+        request.id,
+        -32603,
+        "Invalid response format from target server",
+        { received: responseData },
+      );
+    }
+
+    return responseData as JSONRPCResponse;
+  } catch (error) {
+    return createErrorResponse(
+      request.id,
+      -32603,
+      `Internal error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      error,
+    );
+  }
+};
+
+const handleMessage = async (
+  config: ProxyConfig,
+  message: JSONRPCMessage,
+): Promise<JSONRPCMessage> => {
+  if ("method" in message && "id" in message) {
+    return await handleRequest(config, message as JSONRPCRequest);
+  }
+
+  if ("method" in message && !("id" in message)) {
     try {
       // HTTP URL（主にテスト用）の場合は認証をスキップ
-      const isHttpUrl = this.config.targetUrl.startsWith("http://");
+      const isHttpUrl = config.targetUrl.startsWith("http://");
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
         Accept: "application/json, text/event-stream",
       };
 
       if (!isHttpUrl) {
-        const tokenResult = await this.config.authClient.getIdToken(
-          this.config.targetUrl,
+        const tokenResult = await config.authClient.getIdToken(
+          config.targetUrl,
         );
 
         if (tokenResult.type === "error") {
-          return this.createErrorResponse(
-            request.id,
-            -32603,
-            `Authentication failed: ${tokenResult.error.message}`,
-            tokenResult.error,
-          );
+          return message;
         }
 
         headers.Authorization = `Bearer ${tokenResult.token}`;
       }
 
-      const httpResponse = await this.config.httpClient.post({
-        url: this.config.targetUrl,
+      await config.httpClient.post({
+        url: config.targetUrl,
         headers,
-        body: request,
-        timeout: this.config.timeout,
+        body: message,
+        timeout: config.timeout,
       });
 
-      if (httpResponse.type === "error") {
-        return this.createErrorResponseFromHttpError(
-          request.id,
-          httpResponse.error,
-        );
-      }
-
-      const responseData = httpResponse.data;
-
-      if (!this.isValidJSONRPCResponse(responseData)) {
-        return this.createErrorResponse(
-          request.id,
-          -32603,
-          "Invalid response format from target server",
-          { received: responseData },
-        );
-      }
-
-      return responseData as JSONRPCResponse;
-    } catch (error) {
-      return this.createErrorResponse(
-        request.id,
-        -32603,
-        `Internal error: ${error instanceof Error ? error.message : "Unknown error"}`,
-        error,
-      );
+      return message;
+    } catch (_error) {
+      return message;
     }
   }
 
-  async handleMessage(message: JSONRPCMessage): Promise<JSONRPCMessage> {
-    if ("method" in message && "id" in message) {
-      return await this.handleRequest(message as JSONRPCRequest);
-    }
-
-    if ("method" in message && !("id" in message)) {
-      try {
-        // HTTP URL（主にテスト用）の場合は認証をスキップ
-        const isHttpUrl = this.config.targetUrl.startsWith("http://");
-        const headers: Record<string, string> = {
-          "Content-Type": "application/json",
-          Accept: "application/json, text/event-stream",
-        };
-
-        if (!isHttpUrl) {
-          const tokenResult = await this.config.authClient.getIdToken(
-            this.config.targetUrl,
-          );
-
-          if (tokenResult.type === "error") {
-            return message;
-          }
-
-          headers.Authorization = `Bearer ${tokenResult.token}`;
-        }
-
-        await this.config.httpClient.post({
-          url: this.config.targetUrl,
-          headers,
-          body: message,
-          timeout: this.config.timeout,
-        });
-
-        return message;
-      } catch (_error) {
-        return message;
-      }
-    }
-
-    return message;
-  }
-
-  private isValidJSONRPCResponse(data: unknown): data is JSONRPCResponse {
-    if (!data || typeof data !== "object") {
-      return false;
-    }
-
-    const obj = data as any;
-
-    if (obj.jsonrpc !== "2.0") {
-      return false;
-    }
-
-    if (!("id" in obj)) {
-      return false;
-    }
-
-    return "result" in obj || "error" in obj;
-  }
-
-  private createErrorResponse(
-    id: string | number | null,
-    code: number,
-    message: string,
-    data?: unknown,
-  ): any {
-    const error: any = {
-      code,
-      message,
-    };
-
-    if (data) {
-      error.data = data;
-    }
-
-    return {
-      jsonrpc: "2.0",
-      id: id as string | number,
-      error,
-    };
-  }
-
-  private createErrorResponseFromHttpError(
-    id: string | number | null,
-    httpError: any,
-  ): JSONRPCResponse {
-    switch (httpError.kind) {
-      case "network-error":
-        return this.createErrorResponse(
-          id,
-          -32603,
-          `Network error: ${httpError.message}`,
-          { kind: httpError.kind },
-        );
-
-      case "timeout":
-        return this.createErrorResponse(
-          id,
-          -32603,
-          `Request timeout: ${httpError.message}`,
-          { kind: httpError.kind },
-        );
-
-      case "http-error": {
-        const code = this.mapHttpStatusToJsonRpcCode(httpError.status);
-        return this.createErrorResponse(
-          id,
-          code,
-          `HTTP error: ${httpError.message}`,
-          {
-            kind: httpError.kind,
-            status: httpError.status,
-            body: httpError.body,
-          },
-        );
-      }
-
-      case "parse-error":
-        return this.createErrorResponse(
-          id,
-          -32700,
-          `Parse error: ${httpError.message}`,
-          { kind: httpError.kind },
-        );
-
-      default:
-        return this.createErrorResponse(
-          id,
-          -32603,
-          `Unknown HTTP error: ${httpError.message}`,
-          httpError,
-        );
-    }
-  }
-
-  private mapHttpStatusToJsonRpcCode(status: number): number {
-    if (status === 401 || status === 403) {
-      return -32002; // Invalid params (authentication/authorization)
-    }
-    if (status === 404) {
-      return -32601; // Method not found
-    }
-    if (status >= 400 && status < 500) {
-      return -32602; // Invalid params
-    }
-    if (status >= 500) {
-      return -32603; // Internal error
-    }
-    return -32603; // Default to internal error
-  }
-}
+  return message;
+};
 
 export function createMcpProxy(config: ProxyConfig): McpProxy {
-  return new McpProxyHandler(config);
+  return {
+    handleRequest: (request: JSONRPCRequest) => handleRequest(config, request),
+    handleMessage: (message: JSONRPCMessage) => handleMessage(config, message),
+  };
 }

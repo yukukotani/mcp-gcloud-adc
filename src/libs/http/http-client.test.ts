@@ -1,17 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createHttpClient, FetchHttpClient } from "./http-client.js";
+import { createHttpClient } from "./http-client.js";
 import type { HttpRequestConfig } from "./types.js";
 
 // fetchのモック
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-describe("FetchHttpClient", () => {
-  let httpClient: FetchHttpClient;
+describe("HttpClient", () => {
+  let httpClient: ReturnType<typeof createHttpClient>;
   let mockAbortController: any;
 
   beforeEach(() => {
-    httpClient = new FetchHttpClient();
+    httpClient = createHttpClient();
     vi.clearAllMocks();
     vi.useFakeTimers();
 
@@ -239,8 +239,10 @@ describe("FetchHttpClient", () => {
       const isLastFlags: boolean[] = [];
 
       for await (const chunk of httpClient.postStream(config)) {
-        results.push(chunk.data);
-        isLastFlags.push(chunk.isLast);
+        if (chunk.type === "data") {
+          results.push(chunk.data);
+          isLastFlags.push(chunk.isLast);
+        }
       }
 
       expect(results).toEqual(['{"data": 1}', '{"data": 2}', '{"data": 3}']);
@@ -294,8 +296,10 @@ describe("FetchHttpClient", () => {
 });
 
 describe("createHttpClient", () => {
-  it("FetchHttpClientのインスタンスを作成する", () => {
+  it("HttpClientのインスタンスを作成する", () => {
     const client = createHttpClient();
-    expect(client).toBeInstanceOf(FetchHttpClient);
+    expect(client).toBeTruthy();
+    expect(typeof client.post).toBe("function");
+    expect(typeof client.postStream).toBe("function");
   });
 });

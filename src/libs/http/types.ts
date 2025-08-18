@@ -31,10 +31,16 @@ export type HttpError =
       parseError?: string;
     };
 
-export type StreamChunk = {
-  data: string;
-  isLast: boolean;
-};
+export type StreamChunk =
+  | {
+      type: "data";
+      data: string;
+      isLast: boolean;
+    }
+  | {
+      type: "error";
+      error: HttpError;
+    };
 
 export type HttpRequestInit = {
   method: string;

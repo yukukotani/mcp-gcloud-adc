@@ -53,6 +53,7 @@ describe("Streaming Tests", () => {
       mockHttpClient.postStream.mockImplementation(async function* () {
         for (let i = 0; i < chunks.length; i++) {
           yield {
+            type: "data",
             data: chunks[i],
             isLast: i === chunks.length - 1,
           };
@@ -68,7 +69,9 @@ describe("Streaming Tests", () => {
         body: { method: "test" },
         timeout: 30000,
       })) {
-        results.push(chunk.data);
+        if (chunk.type === "data") {
+          results.push(chunk.data);
+        }
       }
 
       expect(results).toEqual(chunks);
@@ -76,7 +79,7 @@ describe("Streaming Tests", () => {
 
     it("ストリーミングエラーを適切に処理する", async () => {
       mockHttpClient.postStream.mockImplementation(async function* () {
-        yield { data: '{"partial": "data"}', isLast: false };
+        yield { type: "data", data: '{"partial": "data"}', isLast: false };
         throw new Error("Stream interrupted");
       });
 
@@ -108,7 +111,9 @@ describe("Streaming Tests", () => {
         body: { method: "test" },
         timeout: 30000,
       })) {
-        results.push(chunk.data);
+        if (chunk.type === "data") {
+          results.push(chunk.data);
+        }
       }
 
       expect(results).toEqual([]);
@@ -126,7 +131,7 @@ describe("Streaming Tests", () => {
       // mockHttpClient.postは通常のレスポンスを返すように設定
       mockHttpClient.post.mockResolvedValue({
         type: "success",
-        data: JSON.parse(streamChunks[streamChunks.length - 1]!),
+        data: JSON.parse(streamChunks[streamChunks.length - 1] ?? "{}"),
         status: 200,
       });
 
@@ -184,7 +189,7 @@ describe("Streaming Tests", () => {
 
     it("ストリーミング中のHTTPエラーを処理する", async () => {
       mockHttpClient.postStream.mockImplementation(async function* () {
-        yield { data: '{"partial": "data"}', isLast: false };
+        yield { type: "data", data: '{"partial": "data"}', isLast: false };
         throw new Error("Connection lost");
       });
 
@@ -234,7 +239,9 @@ describe("Streaming Tests", () => {
         processedChunks++;
 
         // パフォーマンステスト: 各チャンクが適切に処理されることを確認
-        expect(chunk.data).toContain("jsonrpc");
+        if (chunk.type === "data") {
+          expect(chunk.data).toContain("jsonrpc");
+        }
       }
 
       expect(processedChunks).toBe(chunkCount);
@@ -245,6 +252,7 @@ describe("Streaming Tests", () => {
 
       mockHttpClient.postStream.mockImplementation(async function* () {
         yield {
+          type: "data",
           data: `{"jsonrpc": "2.0", "id": 1, "result": {"data": "${largeData}"}}`,
           isLast: true,
         };
@@ -259,7 +267,9 @@ describe("Streaming Tests", () => {
         body: { method: "large-chunk-test" },
         timeout: 60000,
       })) {
-        receivedData = chunk.data;
+        if (chunk.type === "data") {
+          receivedData = chunk.data;
+        }
       }
 
       expect(receivedData).toContain(largeData);
@@ -269,7 +279,13 @@ describe("Streaming Tests", () => {
   describe("ストリーミングタイムアウト", () => {
     it("タイムアウト時にストリームを中断する", async () => {
       mockHttpClient.postStream.mockImplementation(async function* () {
-        throw new Error("Request timed out");
+        yield {
+          type: "error" as const,
+          error: {
+            kind: "timeout" as const,
+            message: "Request timed out",
+          },
+        };
       });
 
       const httpClient = createHttpClient();
@@ -289,6 +305,7 @@ describe("Streaming Tests", () => {
     it("短いタイムアウトでも最初のチャンクは受信する", async () => {
       mockHttpClient.postStream.mockImplementation(async function* () {
         yield {
+          type: "data",
           data: '{"jsonrpc": "2.0", "id": 1, "result": {"data": "quick"}}',
           isLast: true,
         };
@@ -303,7 +320,9 @@ describe("Streaming Tests", () => {
         body: { method: "quick-test" },
         timeout: 100, // 100msのタイムアウト
       })) {
-        results.push(chunk.data);
+        if (chunk.type === "data") {
+          results.push(chunk.data);
+        }
       }
 
       expect(results).toHaveLength(1);
