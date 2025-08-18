@@ -10,8 +10,9 @@ export type AppConfig = {
   auth: AuthConfig;
   logging: {
     level: "debug" | "info" | "warn" | "error" | "silent";
-    type: "console" | "structured";
+    type: "pretty" | "json" | "file";
     verbose: boolean;
+    filePath?: string;
   };
 };
 
@@ -19,7 +20,8 @@ export type EnvironmentVariables = {
   GOOGLE_APPLICATION_CREDENTIALS?: string;
   GOOGLE_CLOUD_PROJECT?: string;
   MCP_PROXY_LOG_LEVEL?: string;
-  MCP_PROXY_LOG_TYPE?: string;
+  LOG_TYPE?: string;
+  LOG_FILE_PATH?: string;
   MCP_PROXY_TIMEOUT?: string;
   HOSTNAME?: string;
 };
@@ -64,8 +66,9 @@ export class DefaultConfigManager implements ConfigManager {
         level:
           this.parseLogLevel(env.MCP_PROXY_LOG_LEVEL) ||
           (cliOptions.verbose ? "debug" : "info"),
-        type: this.parseLogType(env.MCP_PROXY_LOG_TYPE) || "console",
+        type: this.parseLogType(env.LOG_TYPE) || "file",
         verbose: cliOptions.verbose || false,
+        ...(env.LOG_FILE_PATH && { filePath: env.LOG_FILE_PATH }),
       },
     };
   }
@@ -123,8 +126,11 @@ export class DefaultConfigManager implements ConfigManager {
     if (process.env.MCP_PROXY_LOG_LEVEL) {
       env.MCP_PROXY_LOG_LEVEL = process.env.MCP_PROXY_LOG_LEVEL;
     }
-    if (process.env.MCP_PROXY_LOG_TYPE) {
-      env.MCP_PROXY_LOG_TYPE = process.env.MCP_PROXY_LOG_TYPE;
+    if (process.env.LOG_TYPE) {
+      env.LOG_TYPE = process.env.LOG_TYPE;
+    }
+    if (process.env.LOG_FILE_PATH) {
+      env.LOG_FILE_PATH = process.env.LOG_FILE_PATH;
     }
     if (process.env.MCP_PROXY_TIMEOUT) {
       env.MCP_PROXY_TIMEOUT = process.env.MCP_PROXY_TIMEOUT;
@@ -160,12 +166,12 @@ export class DefaultConfigManager implements ConfigManager {
     return null;
   }
 
-  private parseLogType(value?: string): "console" | "structured" | null {
+  private parseLogType(value?: string): "pretty" | "json" | "file" | null {
     if (!value) return null;
 
     const lowercased = value.toLowerCase();
-    if (["console", "structured"].includes(lowercased)) {
-      return lowercased as "console" | "structured";
+    if (["pretty", "json", "file"].includes(lowercased)) {
+      return lowercased as "pretty" | "json" | "file";
     }
 
     return null;

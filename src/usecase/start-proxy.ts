@@ -23,10 +23,12 @@ export async function startProxy(options: ProxyOptions): Promise<void> {
 
   // ロガーの初期化
   const logger = createLogger(
-    config.logging.type,
+    config.logging.type === "pretty" ? "console" : 
+    config.logging.type === "json" ? "structured" : "file",
     config.logging.verbose,
     config.logging.level,
     "mcp-proxy",
+    config.logging.filePath,
   );
   setGlobalLogger(logger);
 

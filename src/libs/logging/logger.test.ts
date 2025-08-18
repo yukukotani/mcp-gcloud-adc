@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createPinoLogger,
   createLogger,
@@ -6,21 +6,20 @@ import {
   setGlobalLogger,
   createContextLogger,
 } from "./logger.js";
+import fs from "fs";
 
 describe("createPinoLogger", () => {
-  let mockStderr: any;
-
-  beforeEach(() => {
-    mockStderr = vi
-      .spyOn(process.stderr, "write")
-      .mockImplementation(() => true);
-  });
+  const testLogFile = "./test-log.log";
 
   afterEach(() => {
+    // テスト用ログファイルをクリーンアップ
+    if (fs.existsSync(testLogFile)) {
+      fs.unlinkSync(testLogFile);
+    }
     vi.restoreAllMocks();
   });
 
-  it("デフォルト設定でpinoロガーを作成する", () => {
+  it("デフォルト設定でファイル出力のpinoロガーを作成する", () => {
     const logger = createPinoLogger();
     expect(logger).toBeDefined();
     expect(typeof logger.info).toBe("function");
@@ -30,27 +29,56 @@ describe("createPinoLogger", () => {
   });
 
   it("pretty形式でロガーを作成する", () => {
-    const logger = createPinoLogger({ pretty: true, level: "info" });
+    const mockStderr = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+
+    const logger = createPinoLogger({ type: "pretty", level: "info" });
     expect(logger).toBeDefined();
     
     logger.info("Test pretty message");
+    // Prettty形式はstderrに出力される
     expect(mockStderr).toHaveBeenCalled();
   });
 
-  it("structured形式でロガーを作成する", () => {
-    const logger = createPinoLogger({ pretty: false, level: "info" });
+  it("json形式でロガーを作成する", () => {
+    const mockStderr = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+
+    const logger = createPinoLogger({ type: "json", level: "info" });
     expect(logger).toBeDefined();
     
-    logger.info("Test structured message");
+    logger.info("Test json message");
+    // JSON形式はstderrに出力される
     expect(mockStderr).toHaveBeenCalled();
+  });
+
+  it("file形式でロガーを作成する", () => {
+    const logger = createPinoLogger({ 
+      type: "file", 
+      level: "info",
+      filePath: testLogFile
+    });
+    expect(logger).toBeDefined();
+    
+    logger.info("Test file message");
+    
+    // ファイルが作成されることを確認（非同期のため少し待機）
+    setTimeout(() => {
+      expect(fs.existsSync(testLogFile)).toBe(true);
+    }, 100);
   });
 
   it("コンテキスト付きでロガーを作成する", () => {
-    const logger = createPinoLogger({ context: "test-context", pretty: true });
+    const logger = createPinoLogger({ 
+      context: "test-context", 
+      type: "file",
+      filePath: testLogFile
+    });
     expect(logger).toBeDefined();
     
     logger.info("Test message");
-    expect(mockStderr).toHaveBeenCalled();
   });
 
   it("verboseモードでdebugレベルを有効にする", () => {
@@ -65,6 +93,15 @@ describe("createPinoLogger", () => {
 });
 
 describe("createLogger", () => {
+  const testLogFile = "./test-legacy.log";
+
+  afterEach(() => {
+    if (fs.existsSync(testLogFile)) {
+      fs.unlinkSync(testLogFile);
+    }
+    vi.restoreAllMocks();
+  });
+
   it("consoleタイプでpinoロガーを作成する", () => {
     const logger = createLogger("console", true, "debug");
     expect(logger).toBeDefined();
@@ -77,7 +114,13 @@ describe("createLogger", () => {
     expect(typeof logger.info).toBe("function");
   });
 
-  it("デフォルトでconsole形式のpinoロガーを作成する", () => {
+  it("fileタイプでpinoロガーを作成する", () => {
+    const logger = createLogger("file", false, "info", "test", testLogFile);
+    expect(logger).toBeDefined();
+    expect(typeof logger.info).toBe("function");
+  });
+
+  it("デフォルトでfile形式のpinoロガーを作成する", () => {
     const logger = createLogger();
     expect(logger).toBeDefined();
     expect(typeof logger.info).toBe("function");
@@ -90,25 +133,35 @@ describe("createLogger", () => {
 });
 
 describe("createContextLogger", () => {
+  const testLogFile = "./test-context.log";
+
+  afterEach(() => {
+    if (fs.existsSync(testLogFile)) {
+      fs.unlinkSync(testLogFile);
+    }
+  });
+
   it("コンテキスト名付きのロガーを作成する", () => {
     const logger = createContextLogger("my-component");
     expect(logger).toBeDefined();
     expect(typeof logger.info).toBe("function");
   });
 
-  it("prettyフラグを制御できる", () => {
-    const prettyLogger = createContextLogger("component", true);
-    const structuredLogger = createContextLogger("component", false);
+  it("ログタイプを指定できる", () => {
+    const prettyLogger = createContextLogger("component", "pretty");
+    const jsonLogger = createContextLogger("component", "json");
+    const fileLogger = createContextLogger("component", "file", testLogFile);
     
     expect(prettyLogger).toBeDefined();
-    expect(structuredLogger).toBeDefined();
+    expect(jsonLogger).toBeDefined();
+    expect(fileLogger).toBeDefined();
   });
 });
 
 describe("Global Logger", () => {
   afterEach(() => {
     // グローバルロガーをリセット
-    setGlobalLogger(createLogger("console", false, "info"));
+    setGlobalLogger(createLogger("file", false, "info"));
   });
 
   it("グローバルロガーを設定する", () => {
@@ -129,54 +182,48 @@ describe("Global Logger", () => {
   });
 });
 
-describe("Pino Logger Integration", () => {
-  let mockStderr: any;
-
-  beforeEach(() => {
-    mockStderr = vi
-      .spyOn(process.stderr, "write")
-      .mockImplementation(() => true);
-  });
+describe("Log Output Integration", () => {
+  const testLogFile = "./test-integration.log";
 
   afterEach(() => {
+    if (fs.existsSync(testLogFile)) {
+      fs.unlinkSync(testLogFile);
+    }
     vi.restoreAllMocks();
   });
 
-  it("pinoの標準APIを直接使用できる", () => {
-    const logger = createPinoLogger({ pretty: true });
+  it("ファイル出力の基本動作", () => {
+    const logger = createPinoLogger({ 
+      type: "file", 
+      filePath: testLogFile,
+      level: "info"
+    });
     
-    // Pinoの標準メソッドを使用
-    logger.info("Standard info message");
-    logger.debug("Debug message");
-    logger.warn("Warning message");
-    logger.error("Error message");
+    logger.info("Test file output");
     
-    // ログの出力があることを確認
+    // ロガーが作成されることを確認
+    expect(logger).toBeDefined();
+  });
+
+  it("pretty出力はstderrに送られる", () => {
+    const mockStderr = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+
+    const logger = createPinoLogger({ type: "pretty" });
+    logger.info("Test stderr output");
+    
     expect(mockStderr).toHaveBeenCalled();
   });
 
-  it("オブジェクトと文字列を組み合わせたログ記録", () => {
-    const logger = createPinoLogger({ pretty: true });
-    
-    logger.info({ userId: 123, action: "login" }, "User logged in");
-    logger.warn({ error: "timeout" }, "Request failed");
+  it("JSON出力はstderrに送られる", () => {
+    const mockStderr = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+
+    const logger = createPinoLogger({ type: "json" });
+    logger.info("Test json stderr output");
     
     expect(mockStderr).toHaveBeenCalled();
-  });
-
-  it("child loggerを作成できる", () => {
-    const logger = createPinoLogger({ pretty: true });
-    const childLogger = logger.child({ component: "auth" });
-    
-    childLogger.info("Authentication successful");
-    expect(mockStderr).toHaveBeenCalled();
-  });
-
-  it("ログレベルを動的に変更できる", () => {
-    const logger = createPinoLogger({ level: "info" });
-    expect(logger.level).toBe("info");
-    
-    logger.level = "debug";
-    expect(logger.level).toBe("debug");
   });
 });

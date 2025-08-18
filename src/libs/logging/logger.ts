@@ -1,15 +1,24 @@
 import pino from "pino";
 import type { LevelWithSilent, Logger as PinoLogger } from "pino";
 
+export type LogType = "pretty" | "json" | "file";
+
 export type LoggerConfig = {
   level?: pino.LevelWithSilent;
   verbose?: boolean;
   context?: string;
-  pretty?: boolean;
+  type?: LogType;
+  filePath?: string;
 };
 
 export function createPinoLogger(config: LoggerConfig = {}): PinoLogger {
-  const { level = "info", verbose = false, pretty = false, context } = config;
+  const { 
+    level = "info", 
+    verbose = false, 
+    type = "file", 
+    context,
+    filePath = "./mcp-gcloud-adc.log"
+  } = config;
 
   // Pinoの設定
   const pinoConfig: pino.LoggerOptions = {
@@ -17,8 +26,9 @@ export function createPinoLogger(config: LoggerConfig = {}): PinoLogger {
     level: verbose ? "debug" : level,
   };
 
-  // pretty formatの場合のみtransportを追加
-  if (pretty) {
+  // transportの設定
+  if (type === "pretty") {
+    // pretty format - stderrに出力
     pinoConfig.transport = {
       target: "pino-pretty",
       options: {
@@ -28,28 +38,44 @@ export function createPinoLogger(config: LoggerConfig = {}): PinoLogger {
         destination: 2, // stderr
       },
     };
+    return pino(pinoConfig);
+  } else if (type === "json") {
+    // JSON format - stderrに出力
+    return pino(pinoConfig, pino.destination(2));
+  } else {
+    // file format - ファイルに出力（デフォルト）
+    return pino(pinoConfig, pino.destination(filePath));
   }
-
-  // stderrに出力するためのdestinationを設定
-  return pino(pinoConfig, pino.destination(2));
 }
 
-export type LoggerType = "console" | "structured";
+export type LoggerType = "console" | "structured" | "file";
 
 export function createLogger(
-  type: LoggerType = "console",
+  type: LoggerType = "file",
   verbose: boolean = false,
-  level: LevelWithSilent = "silent",
+  level: LevelWithSilent = "info",
   context?: string,
+  filePath?: string,
 ): PinoLogger {
-  // typeに関わらずPino loggerを使用（prettyフォーマットで区別）
-  const pretty = type === "console";
+  // 旧来のtypeを新しいLogTypeにマッピング
+  let logType: LogType;
+  if (type === "console") {
+    logType = "pretty";
+  } else if (type === "structured") {
+    logType = "json";
+  } else {
+    logType = "file";
+  }
 
   const config: LoggerConfig = {
     level,
     verbose,
-    pretty,
+    type: logType,
   };
+  
+  if (filePath) {
+    config.filePath = filePath;
+  }
 
   if (context) {
     config.context = context;
@@ -67,7 +93,7 @@ export function setGlobalLogger(logger: PinoLogger): void {
 
 export function getGlobalLogger(): PinoLogger {
   if (!globalLogger) {
-    globalLogger = createLogger("console", false, "info");
+    globalLogger = createLogger("file", false, "info");
   }
   return globalLogger;
 }
@@ -75,12 +101,19 @@ export function getGlobalLogger(): PinoLogger {
 // 便利な関数でコンテキスト付きロガーを作成
 export function createContextLogger(
   context: string,
-  pretty: boolean = true,
+  type: LogType = "file",
+  filePath?: string,
 ): PinoLogger {
-  return createPinoLogger({
+  const config: LoggerConfig = {
     context,
-    pretty,
+    type,
     verbose: false,
     level: "info",
-  });
+  };
+  
+  if (filePath) {
+    config.filePath = filePath;
+  }
+  
+  return createPinoLogger(config);
 }
