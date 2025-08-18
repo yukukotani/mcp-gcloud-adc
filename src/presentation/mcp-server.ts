@@ -41,7 +41,7 @@ export async function setupMcpServer(config: ServerSetupConfig): Promise<void> {
   );
 
   const transport = new StdioServerTransport();
-  
+
   // 低レベルアプローチ: 直接メッセージハンドリングを行う
   const originalOnMessage = transport.onmessage;
   transport.onmessage = async (message: JSONRPCMessage) => {
@@ -54,20 +54,20 @@ export async function setupMcpServer(config: ServerSetupConfig): Promise<void> {
       if ("method" in message && "id" in message) {
         const request = message as JSONRPCRequest;
         const response = await config.proxy.handleRequest(request);
-        
+
         // レスポンスを送信
         if (transport.send) {
           transport.send(response);
         }
         return;
       }
-      
+
       // 通知の場合はプロキシに転送
       if ("method" in message && !("id" in message)) {
         await config.proxy.handleMessage(message);
         return;
       }
-      
+
       // その他のメッセージはサーバーに渡す
       if (originalOnMessage) {
         await originalOnMessage.call(transport, message);
@@ -78,7 +78,7 @@ export async function setupMcpServer(config: ServerSetupConfig): Promise<void> {
           `[Proxy] Error: ${error instanceof Error ? error.message : String(error)}\n`,
         );
       }
-      
+
       // エラーレスポンスを送信（リクエストの場合のみ）
       if ("id" in message && transport.send) {
         transport.send({

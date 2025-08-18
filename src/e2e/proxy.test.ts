@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { startProxy } from "../usecase/start-proxy.js";
 import type { ProxyOptions } from "../usecase/mcp-proxy/types.js";
+import { startProxy } from "../usecase/start-proxy.js";
 
 // モジュールのモック
 vi.mock("../libs/auth/google-auth.js", () => ({
@@ -35,16 +35,17 @@ vi.mock("../presentation/mcp-server.js", () => ({
 }));
 
 // プロセスのイベントリスナーをモック
-vi.spyOn(process, 'on').mockImplementation((event: string | symbol, listener: any) => {
-  if (event === 'SIGINT' || event === 'SIGTERM') {
-    // すぐにリスナーを実行してテストを終了
-    setTimeout(() => listener(), 10);
-  }
-  return process;
-});
+vi.spyOn(process, "on").mockImplementation(
+  (event: string | symbol, listener: any) => {
+    if (event === "SIGINT" || event === "SIGTERM") {
+      // すぐにリスナーを実行してテストを終了
+      setTimeout(() => listener(), 10);
+    }
+    return process;
+  },
+);
 
 describe("Proxy E2E Tests", () => {
-
   beforeEach(() => {
     vi.spyOn(process.stderr, "write").mockImplementation(() => true);
     vi.spyOn(process.stdout, "write").mockImplementation(() => true);
@@ -66,10 +67,10 @@ describe("Proxy E2E Tests", () => {
 
       // startProxyを開始して短時間後に終了シグナルを送信
       const proxyPromise = startProxy(options);
-      
+
       // 少し待ってからSIGINTを送信
       setTimeout(() => {
-        process.emit('SIGINT', 'SIGINT');
+        process.emit("SIGINT", "SIGINT");
       }, 100);
 
       await expect(proxyPromise).resolves.not.toThrow();
@@ -83,8 +84,8 @@ describe("Proxy E2E Tests", () => {
       };
 
       const proxyPromise = startProxy(options);
-      setTimeout(() => process.emit('SIGINT', 'SIGINT'), 100);
-      
+      setTimeout(() => process.emit("SIGINT", "SIGINT"), 100);
+
       await expect(proxyPromise).resolves.not.toThrow();
     }, 10000);
 
@@ -96,8 +97,8 @@ describe("Proxy E2E Tests", () => {
       };
 
       const proxyPromise = startProxy(options);
-      setTimeout(() => process.emit('SIGINT', 'SIGINT'), 100);
-      
+      setTimeout(() => process.emit("SIGINT", "SIGINT"), 100);
+
       await proxyPromise;
 
       // ログメッセージが出力されることを確認
@@ -172,8 +173,8 @@ describe("Proxy E2E Tests", () => {
       };
 
       const proxyPromise = startProxy(options);
-      setTimeout(() => process.emit('SIGINT', 'SIGINT'), 100);
-      
+      setTimeout(() => process.emit("SIGINT", "SIGINT"), 100);
+
       await expect(proxyPromise).resolves.not.toThrow();
     }, 10000);
 
@@ -185,8 +186,8 @@ describe("Proxy E2E Tests", () => {
       };
 
       const proxyPromise = startProxy(options);
-      setTimeout(() => process.emit('SIGINT', 'SIGINT'), 100);
-      
+      setTimeout(() => process.emit("SIGINT", "SIGINT"), 100);
+
       await proxyPromise;
 
       // 非verboseモードではデバッグログが出力されないことを確認
@@ -199,7 +200,7 @@ describe("Proxy E2E Tests", () => {
   describe("MCPサーバー統合", () => {
     it("MCPサーバーが正しくセットアップされる", async () => {
       const { setupMcpServer } = await import("../presentation/mcp-server.js");
-      
+
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 30000,
@@ -207,8 +208,8 @@ describe("Proxy E2E Tests", () => {
       };
 
       const proxyPromise = startProxy(options);
-      setTimeout(() => process.emit('SIGINT', 'SIGINT'), 100);
-      
+      setTimeout(() => process.emit("SIGINT", "SIGINT"), 100);
+
       await proxyPromise;
 
       // MCPサーバーのセットアップが呼ばれることを確認
@@ -222,7 +223,7 @@ describe("Proxy E2E Tests", () => {
 
     it("プロキシハンドラーが正しく設定される", async () => {
       const { setupMcpServer } = await import("../presentation/mcp-server.js");
-      
+
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 30000,
@@ -230,8 +231,8 @@ describe("Proxy E2E Tests", () => {
       };
 
       const proxyPromise = startProxy(options);
-      setTimeout(() => process.emit('SIGINT', 'SIGINT'), 100);
-      
+      setTimeout(() => process.emit("SIGINT", "SIGINT"), 100);
+
       await proxyPromise;
 
       const setupCall = vi.mocked(setupMcpServer).mock.calls[0]?.[0];

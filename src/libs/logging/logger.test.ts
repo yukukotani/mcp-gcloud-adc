@@ -1,12 +1,12 @@
+import fs from "fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  createPinoLogger,
+  createContextLogger,
   createLogger,
+  createPinoLogger,
   getGlobalLogger,
   setGlobalLogger,
-  createContextLogger,
 } from "./logger.js";
-import fs from "fs";
 
 describe("createPinoLogger", () => {
   const testLogFile = "./test-log.log";
@@ -35,7 +35,7 @@ describe("createPinoLogger", () => {
 
     const logger = createPinoLogger({ type: "pretty", level: "info" });
     expect(logger).toBeDefined();
-    
+
     logger.info("Test pretty message");
     // Prettty形式はstderrに出力される
     expect(mockStderr).toHaveBeenCalled();
@@ -48,22 +48,22 @@ describe("createPinoLogger", () => {
 
     const logger = createPinoLogger({ type: "json", level: "info" });
     expect(logger).toBeDefined();
-    
+
     logger.info("Test json message");
     // JSON形式はstderrに出力される
     expect(mockStderr).toHaveBeenCalled();
   });
 
   it("file形式でロガーを作成する", () => {
-    const logger = createPinoLogger({ 
-      type: "file", 
+    const logger = createPinoLogger({
+      type: "file",
       level: "info",
-      filePath: testLogFile
+      filePath: testLogFile,
     });
     expect(logger).toBeDefined();
-    
+
     logger.info("Test file message");
-    
+
     // ファイルが作成されることを確認（非同期のため少し待機）
     setTimeout(() => {
       expect(fs.existsSync(testLogFile)).toBe(true);
@@ -71,13 +71,13 @@ describe("createPinoLogger", () => {
   });
 
   it("コンテキスト付きでロガーを作成する", () => {
-    const logger = createPinoLogger({ 
-      context: "test-context", 
+    const logger = createPinoLogger({
+      context: "test-context",
       type: "file",
-      filePath: testLogFile
+      filePath: testLogFile,
     });
     expect(logger).toBeDefined();
-    
+
     logger.info("Test message");
   });
 
@@ -151,7 +151,7 @@ describe("createContextLogger", () => {
     const prettyLogger = createContextLogger("component", "pretty");
     const jsonLogger = createContextLogger("component", "json");
     const fileLogger = createContextLogger("component", "file", testLogFile);
-    
+
     expect(prettyLogger).toBeDefined();
     expect(jsonLogger).toBeDefined();
     expect(fileLogger).toBeDefined();
@@ -193,14 +193,14 @@ describe("Log Output Integration", () => {
   });
 
   it("ファイル出力の基本動作", () => {
-    const logger = createPinoLogger({ 
-      type: "file", 
+    const logger = createPinoLogger({
+      type: "file",
       filePath: testLogFile,
-      level: "info"
+      level: "info",
     });
-    
+
     logger.info("Test file output");
-    
+
     // ロガーが作成されることを確認
     expect(logger).toBeDefined();
   });
@@ -212,7 +212,7 @@ describe("Log Output Integration", () => {
 
     const logger = createPinoLogger({ type: "pretty" });
     logger.info("Test stderr output");
-    
+
     expect(mockStderr).toHaveBeenCalled();
   });
 
@@ -223,7 +223,7 @@ describe("Log Output Integration", () => {
 
     const logger = createPinoLogger({ type: "json" });
     logger.info("Test json stderr output");
-    
+
     expect(mockStderr).toHaveBeenCalled();
   });
 });

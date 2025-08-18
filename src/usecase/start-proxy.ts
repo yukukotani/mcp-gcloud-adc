@@ -1,9 +1,9 @@
+import type { Logger as PinoLogger } from "pino";
 import { createAuthClient } from "../libs/auth/google-auth.js";
 import { createConfigManager, getPackageInfo } from "../libs/config/manager.js";
 import { createErrorHandler } from "../libs/error/handler.js";
 import { createHttpClient } from "../libs/http/http-client.js";
 import { createLogger, setGlobalLogger } from "../libs/logging/logger.js";
-import type { Logger as PinoLogger } from "pino";
 import { setupMcpServer } from "../presentation/mcp-server.js";
 import { createMcpProxy } from "./mcp-proxy/handler.js";
 import type { ProxyOptions } from "./mcp-proxy/types.js";
@@ -23,8 +23,11 @@ export async function startProxy(options: ProxyOptions): Promise<void> {
 
   // ロガーの初期化
   const logger = createLogger(
-    config.logging.type === "pretty" ? "console" : 
-    config.logging.type === "json" ? "structured" : "file",
+    config.logging.type === "pretty"
+      ? "console"
+      : config.logging.type === "json"
+        ? "structured"
+        : "file",
     config.logging.verbose,
     config.logging.level,
     "mcp-proxy",

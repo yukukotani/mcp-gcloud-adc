@@ -1,5 +1,5 @@
-import pino from "pino";
 import type { LevelWithSilent, Logger as PinoLogger } from "pino";
+import pino from "pino";
 
 export type LogType = "pretty" | "json" | "file";
 
@@ -12,12 +12,12 @@ export type LoggerConfig = {
 };
 
 export function createPinoLogger(config: LoggerConfig = {}): PinoLogger {
-  const { 
-    level = "info", 
-    verbose = false, 
-    type = "file", 
+  const {
+    level = "info",
+    verbose = false,
+    type = "file",
     context,
-    filePath = "./mcp-gcloud-adc.log"
+    filePath = "./mcp-gcloud-adc.log",
   } = config;
 
   // Pinoの設定
@@ -72,7 +72,7 @@ export function createLogger(
     verbose,
     type: logType,
   };
-  
+
   if (filePath) {
     config.filePath = filePath;
   }
@@ -110,10 +110,10 @@ export function createContextLogger(
     verbose: false,
     level: "info",
   };
-  
+
   if (filePath) {
     config.filePath = filePath;
   }
-  
+
   return createPinoLogger(config);
 }

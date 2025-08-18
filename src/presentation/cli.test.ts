@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { validateCliOptions, executeProxyCommand, type CliOptions } from "./cli.js";
 import { startProxy } from "../usecase/start-proxy.js";
+import {
+  type CliOptions,
+  executeProxyCommand,
+  validateCliOptions,
+} from "./cli.js";
 
 // モジュールのモック
 vi.mock("../usecase/start-proxy.js", () => ({
@@ -27,44 +31,56 @@ describe("CLI", () => {
 
   describe("バリデーション", () => {
     it("有効なオプションを受け入れる", () => {
-      expect(() => validateCliOptions({
-        url: "https://example.com",
-        timeout: 60000,
-        verbose: true,
-      })).not.toThrow();
+      expect(() =>
+        validateCliOptions({
+          url: "https://example.com",
+          timeout: 60000,
+          verbose: true,
+        }),
+      ).not.toThrow();
     });
 
     it("HTTPとHTTPSの両方を受け入れる", () => {
-      expect(() => validateCliOptions({
-        url: "http://example.com",
-        timeout: 60000,
-      })).not.toThrow();
-      
-      expect(() => validateCliOptions({
-        url: "https://example.com",
-        timeout: 60000,
-      })).not.toThrow();
+      expect(() =>
+        validateCliOptions({
+          url: "http://example.com",
+          timeout: 60000,
+        }),
+      ).not.toThrow();
+
+      expect(() =>
+        validateCliOptions({
+          url: "https://example.com",
+          timeout: 60000,
+        }),
+      ).not.toThrow();
     });
 
     it("無効なURL形式を拒否する", () => {
-      expect(() => validateCliOptions({
-        url: "https://[invalid-url",
-        timeout: 60000,
-      })).toThrow("Invalid URL format");
+      expect(() =>
+        validateCliOptions({
+          url: "https://[invalid-url",
+          timeout: 60000,
+        }),
+      ).toThrow("Invalid URL format");
     });
 
     it("負のタイムアウトを拒否する", () => {
-      expect(() => validateCliOptions({
-        url: "https://example.com",
-        timeout: -1,
-      })).toThrow("Timeout must be positive");
+      expect(() =>
+        validateCliOptions({
+          url: "https://example.com",
+          timeout: -1,
+        }),
+      ).toThrow("Timeout must be positive");
     });
 
     it("大きすぎるタイムアウトを拒否する", () => {
-      expect(() => validateCliOptions({
-        url: "https://example.com",
-        timeout: 700000,
-      })).toThrow("Timeout cannot exceed 10 minutes (600000ms)");
+      expect(() =>
+        validateCliOptions({
+          url: "https://example.com",
+          timeout: 700000,
+        }),
+      ).toThrow("Timeout cannot exceed 10 minutes (600000ms)");
     });
   });
 
@@ -122,7 +138,9 @@ describe("CLI", () => {
 
       await executeProxyCommand(options);
 
-      expect(mockStderr).toHaveBeenCalledWith("Failed to start proxy: Connection failed\n");
+      expect(mockStderr).toHaveBeenCalledWith(
+        "Failed to start proxy: Connection failed\n",
+      );
       expect(mockExit).toHaveBeenCalledWith(1);
     });
 
@@ -135,7 +153,9 @@ describe("CLI", () => {
 
       await executeProxyCommand(options);
 
-      expect(mockStderr).toHaveBeenCalledWith("Failed to start proxy: Unknown error\n");
+      expect(mockStderr).toHaveBeenCalledWith(
+        "Failed to start proxy: Unknown error\n",
+      );
       expect(mockExit).toHaveBeenCalledWith(1);
     });
 
@@ -145,7 +165,9 @@ describe("CLI", () => {
         timeout: 120000,
       };
 
-      await expect(executeProxyCommand(options)).rejects.toThrow("URL must be HTTP or HTTPS");
+      await expect(executeProxyCommand(options)).rejects.toThrow(
+        "URL must be HTTP or HTTPS",
+      );
     });
   });
 });

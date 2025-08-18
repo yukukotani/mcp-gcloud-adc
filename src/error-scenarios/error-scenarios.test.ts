@@ -1,11 +1,13 @@
+import type {
+  JSONRPCError,
+  JSONRPCRequest,
+} from "@modelcontextprotocol/sdk/types.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMcpProxy } from "../usecase/mcp-proxy/handler.js";
-import { startProxy } from "../usecase/start-proxy.js";
-import type { JSONRPCRequest, JSONRPCError } from "@modelcontextprotocol/sdk/types.js";
 import type { ProxyOptions } from "../usecase/mcp-proxy/types.js";
+import { startProxy } from "../usecase/start-proxy.js";
 
 describe("Error Scenarios", () => {
-
   beforeEach(() => {
     vi.spyOn(process.stderr, "write").mockImplementation(() => true);
     vi.spyOn(process.stdout, "write").mockImplementation(() => true);
@@ -22,7 +24,7 @@ describe("Error Scenarios", () => {
       vi.doMock("../libs/auth/google-auth.js", () => ({
         createAuthClient: () => ({
           getIdToken: vi.fn(),
-        refreshToken: vi.fn().mockResolvedValue({
+          refreshToken: vi.fn().mockResolvedValue({
             type: "error",
             error: {
               kind: "no-credentials",
@@ -64,7 +66,9 @@ describe("Error Scenarios", () => {
       expect(response).toHaveProperty("error");
       const errorResponse = response as unknown as JSONRPCError;
       expect(errorResponse.error.code).toBe(-32603); // Internal error
-      expect(errorResponse.error.message).toContain("Could not load the default credentials");
+      expect(errorResponse.error.message).toContain(
+        "Could not load the default credentials",
+      );
     });
 
     it("IDトークンの有効期限切れ", async () => {
@@ -161,7 +165,7 @@ describe("Error Scenarios", () => {
         timeout: 30000,
         authClient: {
           getIdToken: vi.fn(),
-        refreshToken: vi.fn().mockResolvedValue({
+          refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -203,7 +207,7 @@ describe("Error Scenarios", () => {
         timeout: 30000,
         authClient: {
           getIdToken: vi.fn(),
-        refreshToken: vi.fn().mockResolvedValue({
+          refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -224,7 +228,9 @@ describe("Error Scenarios", () => {
 
       expect(response).toHaveProperty("error");
       const errorResponse = response as unknown as JSONRPCError;
-      expect(errorResponse.error.message).toContain("Network connection failed");
+      expect(errorResponse.error.message).toContain(
+        "Network connection failed",
+      );
     });
 
     it("HTTP 500エラー", async () => {
@@ -246,7 +252,7 @@ describe("Error Scenarios", () => {
         timeout: 30000,
         authClient: {
           getIdToken: vi.fn(),
-        refreshToken: vi.fn().mockResolvedValue({
+          refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -289,7 +295,7 @@ describe("Error Scenarios", () => {
         timeout: 30000,
         authClient: {
           getIdToken: vi.fn(),
-        refreshToken: vi.fn().mockResolvedValue({
+          refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -333,7 +339,7 @@ describe("Error Scenarios", () => {
         timeout: 30000,
         authClient: {
           getIdToken: vi.fn(),
-        refreshToken: vi.fn().mockResolvedValue({
+          refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -363,7 +369,7 @@ describe("Error Scenarios", () => {
         timeout: 30000,
         authClient: {
           getIdToken: vi.fn(),
-        refreshToken: vi.fn().mockResolvedValue({
+          refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -447,7 +453,7 @@ describe("Error Scenarios", () => {
         timeout: 30000,
         authClient: {
           getIdToken: vi.fn(),
-        refreshToken: vi.fn().mockResolvedValue({
+          refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -492,7 +498,7 @@ describe("Error Scenarios", () => {
         timeout: 30000,
         authClient: {
           getIdToken: vi.fn(),
-        refreshToken: vi.fn().mockResolvedValue({
+          refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
             expiresAt: Date.now() + 3600000,
@@ -511,11 +517,11 @@ describe("Error Scenarios", () => {
 
       // 並行リクエストを実行
       const responses = await Promise.all(
-        requests.map(req => proxy.handleRequest(req))
+        requests.map((req) => proxy.handleRequest(req)),
       );
 
       // 全てのレスポンスがエラーを含むことを確認
-      responses.forEach(response => {
+      responses.forEach((response) => {
         expect(response).toHaveProperty("error");
         const errorResponse = response as unknown as JSONRPCError;
         expect(errorResponse.error.message).toContain("Too Many Requests");

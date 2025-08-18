@@ -1,6 +1,9 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import type { JSONRPCMessage, JSONRPCRequest } from "@modelcontextprotocol/sdk/types.js";
+import type {
+  JSONRPCMessage,
+  JSONRPCRequest,
+} from "@modelcontextprotocol/sdk/types.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { McpProxy } from "../usecase/mcp-proxy/types.js";
 import { setupMcpServer } from "./mcp-server.js";
@@ -161,9 +164,7 @@ describe("server-setup", () => {
           message: "Proxy error: Proxy error",
         },
       });
-      expect(mockStderr).toHaveBeenCalledWith(
-        "[Proxy] Error: Proxy error\n",
-      );
+      expect(mockStderr).toHaveBeenCalledWith("[Proxy] Error: Proxy error\n");
     });
 
     it("通知メッセージを適切に処理する", async () => {
@@ -214,12 +215,8 @@ describe("server-setup", () => {
       const onmessageHandler = mockTransport.onmessage;
       await onmessageHandler(testRequest);
 
-      expect(mockStderr).toHaveBeenCalledWith(
-        "[Proxy] Handling: tools/list\n",
-      );
-      expect(mockStderr).toHaveBeenCalledWith(
-        "[Proxy] Error: Test error\n",
-      );
+      expect(mockStderr).toHaveBeenCalledWith("[Proxy] Handling: tools/list\n");
+      expect(mockStderr).toHaveBeenCalledWith("[Proxy] Error: Test error\n");
     });
   });
 });

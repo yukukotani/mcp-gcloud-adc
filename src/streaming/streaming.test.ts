@@ -1,7 +1,10 @@
+import type {
+  JSONRPCError,
+  JSONRPCRequest,
+} from "@modelcontextprotocol/sdk/types.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createMcpProxy } from "../usecase/mcp-proxy/handler.js";
-import type { JSONRPCRequest, JSONRPCError } from "@modelcontextprotocol/sdk/types.js";
 import { createHttpClient } from "../libs/http/http-client.js";
+import { createMcpProxy } from "../usecase/mcp-proxy/handler.js";
 
 // HTTPクライアントのモック
 const mockHttpClient = {
@@ -26,7 +29,7 @@ vi.mock("../libs/auth/google-auth.js", () => ({
 describe("Streaming Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // デフォルトの認証レスポンス
     mockAuthClient.getIdToken.mockResolvedValue({
       type: "success",
@@ -212,7 +215,7 @@ describe("Streaming Tests", () => {
   describe("大容量ストリーミング", () => {
     it("大量のチャンクを効率的に処理する", async () => {
       const chunkCount = 1000;
-      
+
       mockHttpClient.postStream.mockImplementation(async function* () {
         for (let i = 0; i < chunkCount; i++) {
           yield {
@@ -232,7 +235,7 @@ describe("Streaming Tests", () => {
         timeout: 60000,
       })) {
         processedChunks++;
-        
+
         // パフォーマンステスト: 各チャンクが適切に処理されることを確認
         expect(chunk.data).toContain("jsonrpc");
       }
@@ -242,7 +245,7 @@ describe("Streaming Tests", () => {
 
     it("大きなチャンクサイズを処理する", async () => {
       const largeData = "x".repeat(10000); // 10KB のデータ
-      
+
       mockHttpClient.postStream.mockImplementation(async function* () {
         yield {
           data: `{"jsonrpc": "2.0", "id": 1, "result": {"data": "${largeData}"}}`,
@@ -288,7 +291,10 @@ describe("Streaming Tests", () => {
 
     it("短いタイムアウトでも最初のチャンクは受信する", async () => {
       mockHttpClient.postStream.mockImplementation(async function* () {
-        yield { data: '{"jsonrpc": "2.0", "id": 1, "result": {"data": "quick"}}', isLast: true };
+        yield {
+          data: '{"jsonrpc": "2.0", "id": 1, "result": {"data": "quick"}}',
+          isLast: true,
+        };
       });
 
       const httpClient = createHttpClient();
