@@ -4,7 +4,7 @@ import { createConfigManager, getPackageInfo } from "../libs/config/manager.js";
 import { createErrorHandler } from "../libs/error/handler.js";
 import { createHttpClient } from "../libs/http/http-client.js";
 import { createLogger, setGlobalLogger } from "../libs/logging/logger.js";
-import { setupMcpServer } from "../presentation/mcp-server.js";
+import { setupSimpleMcpServer } from "../presentation/mcp-server-simple.js";
 import { createMcpProxy } from "./mcp-proxy/handler.js";
 import type { ProxyOptions } from "./mcp-proxy/types.js";
 
@@ -63,7 +63,7 @@ export async function startProxy(options: ProxyOptions): Promise<void> {
 
     // MCPサーバーのセットアップと接続
     logger.debug("Setting up MCP proxy server");
-    await setupMcpServer({
+    await setupSimpleMcpServer({
       name: config.server.name,
       version: config.server.version,
       proxy,

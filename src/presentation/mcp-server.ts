@@ -1,8 +1,12 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import type {
-  JSONRPCMessage,
-  JSONRPCRequest,
+import {
+  ListToolsRequestSchema,
+  CallToolRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import type { McpProxy } from "../usecase/mcp-proxy/types.js";
 
@@ -42,58 +46,69 @@ export async function setupMcpServer(config: ServerSetupConfig): Promise<void> {
 
   const transport = new StdioServerTransport();
 
-  // 低レベルアプローチ: 直接メッセージハンドリングを行う
-  const originalOnMessage = transport.onmessage;
-  transport.onmessage = async (message: JSONRPCMessage) => {
-    if (config.verbose && "method" in message) {
-      process.stderr.write(`[Proxy] Handling: ${message.method}\n`);
-    }
-
-    try {
-      // リクエストかどうかを確認
-      if ("method" in message && "id" in message) {
-        const request = message as JSONRPCRequest;
-        const response = await config.proxy.handleRequest(request);
-
-        // レスポンスを送信
-        if (transport.send) {
-          transport.send(response);
-        }
-        return;
-      }
-
-      // 通知の場合はプロキシに転送
-      if ("method" in message && !("id" in message)) {
-        await config.proxy.handleMessage(message);
-        return;
-      }
-
-      // その他のメッセージはサーバーに渡す
-      if (originalOnMessage) {
-        await originalOnMessage.call(transport, message);
-      }
-    } catch (error) {
-      if (config.verbose) {
-        process.stderr.write(
-          `[Proxy] Error: ${error instanceof Error ? error.message : String(error)}\n`,
-        );
-      }
-
-      // エラーレスポンスを送信（リクエストの場合のみ）
-      if ("id" in message && transport.send) {
-        transport.send({
-          jsonrpc: "2.0",
-          id: message.id,
-          error: {
-            code: -32603,
-            message: `Proxy error: ${error instanceof Error ? error.message : "Unknown error"}`,
-          },
-        } as JSONRPCMessage);
-      }
-    }
-  };
-
+  // まずサーバーを接続してから、カスタムメッセージハンドリングを追加
   await server.connect(transport);
+
+  // MCP プロトコルに準拠したハンドラを追加
+  // initialize メッセージなど標準的なMCPメッセージは標準処理に任せ、
+  // tools/, resources/, prompts/ のみプロキシに転送
+
+  server.setRequestHandler(ListToolsRequestSchema, async () => {
+    const proxyResponse = await config.proxy.handleRequest({
+      jsonrpc: "2.0", 
+      id: Math.random(),
+      method: "tools/list",
+    });
+    return proxyResponse.result || { tools: [] };
+  });
+
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const proxyResponse = await config.proxy.handleRequest({
+      jsonrpc: "2.0",
+      id: Math.random(),
+      method: "tools/call",
+      params: request.params,
+    });
+    return proxyResponse.result || {};
+  });
+
+  server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    const proxyResponse = await config.proxy.handleRequest({
+      jsonrpc: "2.0",
+      id: Math.random(),
+      method: "resources/list",
+    });
+    return proxyResponse.result || { resources: [] };
+  });
+
+  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    const proxyResponse = await config.proxy.handleRequest({
+      jsonrpc: "2.0",
+      id: Math.random(),
+      method: "resources/read",
+      params: request.params,
+    });
+    return proxyResponse.result || {};
+  });
+
+  server.setRequestHandler(ListPromptsRequestSchema, async () => {
+    const proxyResponse = await config.proxy.handleRequest({
+      jsonrpc: "2.0",
+      id: Math.random(),
+      method: "prompts/list",
+    });
+    return proxyResponse.result || { prompts: [] };
+  });
+
+  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+    const proxyResponse = await config.proxy.handleRequest({
+      jsonrpc: "2.0",
+      id: Math.random(),
+      method: "prompts/get",
+      params: request.params,
+    });
+    return proxyResponse.result || {};
+  });
 
   if (config.verbose) {
     process.stderr.write("MCP proxy server ready\n");

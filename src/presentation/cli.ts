@@ -105,4 +105,4 @@ export async function runCli(): Promise<void> {
   });
 }
 
-await runCli();
+// CLI実行をindex.tsに移動（MCP Inspectorとの競合を防ぐため）

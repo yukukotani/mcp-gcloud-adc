@@ -22,30 +22,65 @@ export class McpProxyHandler implements McpProxy {
     }
 
     try {
-      const tokenResult = await this.config.authClient.getIdToken(
-        this.config.targetUrl,
-      );
+      // HTTP URL（主にテスト用）の場合は認証をスキップ
+      const isHttpUrl = this.config.targetUrl.startsWith("http://");
+      let headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream",
+      };
 
-      if (tokenResult.type === "error") {
-        return this.createErrorResponse(
-          request.id,
-          -32603,
-          `Authentication failed: ${tokenResult.error.message}`,
-          tokenResult.error,
+      if (!isHttpUrl) {
+        if (this.config.verbose) {
+          process.stderr.write(`[DEBUG] Getting auth token for ${this.config.targetUrl}\n`);
+        }
+        
+        const tokenResult = await this.config.authClient.getIdToken(
+          this.config.targetUrl,
         );
+
+        if (tokenResult.type === "error") {
+          if (this.config.verbose) {
+            process.stderr.write(`[DEBUG] Auth token failed: ${tokenResult.error.message}\n`);
+          }
+          return this.createErrorResponse(
+            request.id,
+            -32603,
+            `Authentication failed: ${tokenResult.error.message}`,
+            tokenResult.error,
+          );
+        }
+
+        headers.Authorization = `Bearer ${tokenResult.token}`;
+        
+        if (this.config.verbose) {
+          process.stderr.write(`[DEBUG] Auth token obtained\n`);
+        }
+      } else {
+        if (this.config.verbose) {
+          process.stderr.write(`[DEBUG] HTTP URL detected, skipping authentication\n`);
+        }
+      }
+
+      if (this.config.verbose) {
+        process.stderr.write(`[DEBUG] Sending HTTP request to ${this.config.targetUrl}\n`);
+        process.stderr.write(`[DEBUG] Request body: ${JSON.stringify(request)}\n`);
       }
 
       const httpResponse = await this.config.httpClient.post({
         url: this.config.targetUrl,
-        headers: {
-          Authorization: `Bearer ${tokenResult.token}`,
-          "Content-Type": "application/json",
-        },
+        headers,
         body: request,
         timeout: this.config.timeout,
       });
 
+      if (this.config.verbose) {
+        process.stderr.write(`[DEBUG] HTTP response type: ${httpResponse.type}\n`);
+      }
+
       if (httpResponse.type === "error") {
+        if (this.config.verbose) {
+          process.stderr.write(`[DEBUG] HTTP error: ${JSON.stringify(httpResponse.error)}\n`);
+        }
         return this.createErrorResponseFromHttpError(
           request.id,
           httpResponse.error,
@@ -54,7 +89,14 @@ export class McpProxyHandler implements McpProxy {
 
       const responseData = httpResponse.data;
 
+      if (this.config.verbose) {
+        process.stderr.write(`[DEBUG] HTTP response data received: ${JSON.stringify(responseData)}\n`);
+      }
+
       if (!this.isValidJSONRPCResponse(responseData)) {
+        if (this.config.verbose) {
+          process.stderr.write(`[DEBUG] Invalid JSON-RPC response: ${JSON.stringify(responseData)}\n`);
+        }
         return this.createErrorResponse(
           request.id,
           -32603,
@@ -93,25 +135,33 @@ export class McpProxyHandler implements McpProxy {
       }
 
       try {
-        const tokenResult = await this.config.authClient.getIdToken(
-          this.config.targetUrl,
-        );
+        // HTTP URL（主にテスト用）の場合は認証をスキップ
+        const isHttpUrl = this.config.targetUrl.startsWith("http://");
+        let headers: Record<string, string> = {
+          "Content-Type": "application/json",
+          "Accept": "application/json, text/event-stream",
+        };
 
-        if (tokenResult.type === "error") {
-          if (this.config.verbose) {
-            process.stderr.write(
-              `Authentication failed for notification: ${tokenResult.error.message}\n`,
-            );
+        if (!isHttpUrl) {
+          const tokenResult = await this.config.authClient.getIdToken(
+            this.config.targetUrl,
+          );
+
+          if (tokenResult.type === "error") {
+            if (this.config.verbose) {
+              process.stderr.write(
+                `Authentication failed for notification: ${tokenResult.error.message}\n`,
+              );
+            }
+            return message;
           }
-          return message;
+
+          headers.Authorization = `Bearer ${tokenResult.token}`;
         }
 
         await this.config.httpClient.post({
           url: this.config.targetUrl,
-          headers: {
-            Authorization: `Bearer ${tokenResult.token}`,
-            "Content-Type": "application/json",
-          },
+          headers,
           body: message,
           timeout: this.config.timeout,
         });

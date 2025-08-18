@@ -38,13 +38,29 @@ export class FetchHttpClient implements HttpClient {
         };
       }
 
-      const data = await this.parseJsonResponse(response);
-      if (data === null) {
+      const responseText = await response.text();
+      let data: unknown;
+      
+      try {
+        // SSE形式のレスポンスをチェック（MCP over HTTP）
+        if (responseText.includes('event: message\ndata: ')) {
+          const dataMatch = responseText.match(/data: (.+)/);
+          if (dataMatch && dataMatch[1]) {
+            data = JSON.parse(dataMatch[1]);
+          } else {
+            throw new Error("SSE format but no data found");
+          }
+        } else {
+          data = JSON.parse(responseText);
+        }
+      } catch (parseError) {
         return {
           type: "error",
           error: {
             kind: "parse-error",
             message: "Failed to parse response as JSON",
+            body: responseText,
+            parseError: parseError instanceof Error ? parseError.message : String(parseError),
           },
         };
       }
@@ -181,17 +197,6 @@ export class FetchHttpClient implements HttpClient {
     }
   }
 
-  private async parseJsonResponse(response: Response): Promise<unknown | null> {
-    try {
-      const text = await response.text();
-      if (!text.trim()) {
-        return null;
-      }
-      return JSON.parse(text);
-    } catch {
-      return null;
-    }
-  }
 }
 
 export function createHttpClient(): HttpClient {
