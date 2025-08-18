@@ -104,7 +104,7 @@ export class McpProxyHandler implements McpProxy {
         });
 
         return message;
-      } catch (error) {
+      } catch (_error) {
         return message;
       }
     }

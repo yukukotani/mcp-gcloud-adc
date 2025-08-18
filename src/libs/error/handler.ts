@@ -31,8 +31,6 @@ export type ErrorHandler = {
 };
 
 export class DefaultErrorHandler implements ErrorHandler {
-  constructor() {}
-
   createErrorResponse(
     id: string | number | null,
     error: ApplicationError,

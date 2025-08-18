@@ -86,23 +86,6 @@ describe("Proxy E2E Tests", () => {
 
       await expect(proxyPromise).resolves.not.toThrow();
     }, 10000);
-
-    it("verboseモードで詳細ログを出力する", async () => {
-      const options: ProxyOptions = {
-        url: "https://example.com/mcp",
-        timeout: 30000,
-      };
-
-      const proxyPromise = startProxy(options);
-      setTimeout(() => process.emit("SIGINT", "SIGINT"), 100);
-
-      await proxyPromise;
-
-      // ログメッセージが出力されることを確認
-      expect(vi.mocked(process.stderr.write)).toHaveBeenCalledWith(
-        expect.stringContaining("Starting MCP proxy"),
-      );
-    }, 10000);
   });
 
   describe("設定バリデーション", () => {
@@ -180,7 +163,7 @@ describe("Proxy E2E Tests", () => {
 
       await proxyPromise;
 
-      // 非verboseモードではデバッグログが出力されないことを確認
+      // デバッグログが適切に出力されないことを確認
       expect(vi.mocked(process.stderr.write)).not.toHaveBeenCalledWith(
         expect.stringContaining("Debug:"),
       );

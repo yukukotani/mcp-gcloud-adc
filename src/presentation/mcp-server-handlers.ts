@@ -81,22 +81,13 @@ export function registerProxyHandlers(
   });
 }
 
-export function setupGracefulShutdown(
-  transport: StdioServerTransport,
-  options?: { verbose?: boolean },
-): void {
+export function setupGracefulShutdown(transport: StdioServerTransport): void {
   process.on("SIGINT", () => {
-    if (options?.verbose) {
-      process.stderr.write("\n[Proxy] Shutting down...\n");
-    }
     transport.close?.();
     process.exit(0);
   });
 
   process.on("SIGTERM", () => {
-    if (options?.verbose) {
-      process.stderr.write("[Proxy] Terminating...\n");
-    }
     transport.close?.();
     process.exit(0);
   });

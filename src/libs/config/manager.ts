@@ -11,7 +11,6 @@ export type AppConfig = {
   logging: {
     level: "debug" | "info" | "warn" | "error" | "silent";
     type: "pretty" | "json" | "file";
-    verbose: boolean;
     filePath?: string;
   };
 };
@@ -62,7 +61,6 @@ export class DefaultConfigManager implements ConfigManager {
       logging: {
         level: this.parseLogLevel(env.MCP_PROXY_LOG_LEVEL) || "info",
         type: this.parseLogType(env.LOG_TYPE) || "file",
-        verbose: false,
         ...(env.LOG_FILE_PATH && { filePath: env.LOG_FILE_PATH }),
       },
     };

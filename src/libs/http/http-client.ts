@@ -45,7 +45,7 @@ export class FetchHttpClient implements HttpClient {
         // SSE形式のレスポンスをチェック（MCP over HTTP）
         if (responseText.includes("event: message\ndata: ")) {
           const dataMatch = responseText.match(/data: (.+)/);
-          if (dataMatch && dataMatch[1]) {
+          if (dataMatch?.[1]) {
             data = JSON.parse(dataMatch[1]);
           } else {
             throw new Error("SSE format but no data found");

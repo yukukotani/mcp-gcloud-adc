@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createContextLogger,
@@ -80,16 +80,6 @@ describe("createPinoLogger", () => {
 
     logger.info("Test message");
   });
-
-  it("verboseモードでdebugレベルを有効にする", () => {
-    const logger = createPinoLogger({ verbose: false, level: "info" });
-    expect(logger.level).toBe("debug");
-  });
-
-  it("非verboseモードで指定されたレベルを使用する", () => {
-    const logger = createPinoLogger({ verbose: false, level: "warn" });
-    expect(logger.level).toBe("warn");
-  });
 });
 
 describe("createLogger", () => {
@@ -103,19 +93,19 @@ describe("createLogger", () => {
   });
 
   it("consoleタイプでpinoロガーを作成する", () => {
-    const logger = createLogger("console", true, "debug");
+    const logger = createLogger("console", "debug");
     expect(logger).toBeDefined();
     expect(typeof logger.info).toBe("function");
   });
 
   it("structuredタイプでpinoロガーを作成する", () => {
-    const logger = createLogger("structured", true, "debug");
+    const logger = createLogger("structured", "debug");
     expect(logger).toBeDefined();
     expect(typeof logger.info).toBe("function");
   });
 
   it("fileタイプでpinoロガーを作成する", () => {
-    const logger = createLogger("file", false, "info", "test", testLogFile);
+    const logger = createLogger("file", "info", "test", testLogFile);
     expect(logger).toBeDefined();
     expect(typeof logger.info).toBe("function");
   });
@@ -127,7 +117,7 @@ describe("createLogger", () => {
   });
 
   it("コンテキスト付きでロガーを作成する", () => {
-    const logger = createLogger("console", false, "info", "test-context");
+    const logger = createLogger("console", "info", "test-context");
     expect(logger).toBeDefined();
   });
 });
@@ -161,11 +151,11 @@ describe("createContextLogger", () => {
 describe("Global Logger", () => {
   afterEach(() => {
     // グローバルロガーをリセット
-    setGlobalLogger(createLogger("file", false, "info"));
+    setGlobalLogger(createLogger("file", "info"));
   });
 
   it("グローバルロガーを設定する", () => {
-    const customLogger = createLogger("structured", true, "debug");
+    const customLogger = createLogger("structured", "debug");
     setGlobalLogger(customLogger);
 
     const retrievedLogger = getGlobalLogger();

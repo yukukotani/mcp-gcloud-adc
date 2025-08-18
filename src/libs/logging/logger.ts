@@ -5,7 +5,6 @@ export type LogType = "pretty" | "json" | "file";
 
 export type LoggerConfig = {
   level?: pino.LevelWithSilent;
-  verbose?: boolean;
   context?: string;
   type?: LogType;
   filePath?: string;
@@ -14,7 +13,6 @@ export type LoggerConfig = {
 export function createPinoLogger(config: LoggerConfig = {}): PinoLogger {
   const {
     level = "info",
-    verbose = false,
     type = "file",
     context,
     filePath = "./mcp-gcloud-adc.log",
@@ -23,7 +21,7 @@ export function createPinoLogger(config: LoggerConfig = {}): PinoLogger {
   // Pinoの設定
   const pinoConfig: pino.LoggerOptions = {
     name: context || "mcp-proxy",
-    level: verbose ? "debug" : level,
+    level,
   };
 
   // transportの設定
@@ -52,7 +50,6 @@ export type LoggerType = "console" | "structured" | "file";
 
 export function createLogger(
   type: LoggerType = "file",
-  verbose: boolean = false,
   level: LevelWithSilent = "info",
   context?: string,
   filePath?: string,
@@ -69,7 +66,6 @@ export function createLogger(
 
   const config: LoggerConfig = {
     level,
-    verbose,
     type: logType,
   };
 
@@ -93,7 +89,7 @@ export function setGlobalLogger(logger: PinoLogger): void {
 
 export function getGlobalLogger(): PinoLogger {
   if (!globalLogger) {
-    globalLogger = createLogger("file", false, "info");
+    globalLogger = createLogger("file", "info");
   }
   return globalLogger;
 }
@@ -107,7 +103,6 @@ export function createContextLogger(
   const config: LoggerConfig = {
     context,
     type,
-    verbose: false,
     level: "info",
   };
 
