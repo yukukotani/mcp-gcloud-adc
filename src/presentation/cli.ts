@@ -28,6 +28,7 @@ const proxyCommand = {
       type: "boolean" as const,
       short: "v" as const,
       description: "Enable verbose logging",
+      default: false,
     },
   },
   examples: `# Basic usage (HTTPS)

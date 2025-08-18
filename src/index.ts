@@ -6,9 +6,10 @@ async function main(): Promise<void> {
   try {
     // MCP Inspector や stdio MCP クライアント用: 引数なしまたはURL引数のみの場合はstdio MCPサーバーモードで起動
     if (process.argv.length === 2 || (process.argv.length === 4 && process.argv[2] === '-u')) {
-      // stdio MCP サーバーモード - デバッグのためverbose=trueに設定
+      // stdio MCP サーバーモード
       const url = process.argv.length === 4 && process.argv[3] ? process.argv[3] : 'https://httpbin.org/post';
-      await startProxy({ url, timeout: 120000, verbose: true });
+      const verbose = process.env.MCP_PROXY_LOG_LEVEL === 'debug' || process.env.VERBOSE === 'true';
+      await startProxy({ url, timeout: 120000, verbose });
       return;
     }
     
