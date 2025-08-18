@@ -39,7 +39,7 @@ $ mcp-gcloud-proxy -u https://my-service-abc123-uc.a.run.app -v -t 60000`,
     const { url, timeout, verbose } = ctx.values;
     await executeProxyCommand({ url, timeout, verbose });
   },
-};
+} as const;
 
 export type CliOptions = {
   url: string;
@@ -88,16 +88,11 @@ export async function executeProxyCommand(options: CliOptions): Promise<void> {
 }
 
 export async function runCli(): Promise<void> {
-  await cli(process.argv.slice(2), proxyCommand as any, {
+  await cli(process.argv.slice(2), proxyCommand, {
     name: "mcp-gcloud-proxy",
     version: "1.0.0",
     description: "Google Cloud Run MCP Server Proxy with ADC authentication",
   });
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runCli().catch((error) => {
-    process.stderr.write(`Unexpected error: ${error}\n`);
-    process.exit(1);
-  });
-}
+await runCli();
