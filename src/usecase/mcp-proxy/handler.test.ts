@@ -73,6 +73,7 @@ describe("McpProxy", () => {
         headers: {
           Authorization: "Bearer mock-token",
           "Content-Type": "application/json",
+          Accept: "application/json, text/event-stream",
         },
         body: request,
         timeout: 5000,
@@ -350,6 +351,7 @@ describe("McpProxy", () => {
         headers: {
           Authorization: "Bearer mock-token",
           "Content-Type": "application/json",
+          Accept: "application/json, text/event-stream",
         },
         body: notification,
         timeout: 5000,
