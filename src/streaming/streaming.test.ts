@@ -135,7 +135,6 @@ describe("Streaming Tests", () => {
         timeout: 30000,
         authClient: mockAuthClient,
         httpClient: mockHttpClient,
-        verbose: false,
       });
 
       const request: JSONRPCRequest = {
@@ -166,7 +165,6 @@ describe("Streaming Tests", () => {
         timeout: 30000,
         authClient: mockAuthClient,
         httpClient: mockHttpClient,
-        verbose: false,
       });
 
       const request: JSONRPCRequest = {
@@ -195,7 +193,6 @@ describe("Streaming Tests", () => {
         timeout: 30000,
         authClient: mockAuthClient,
         httpClient: mockHttpClient,
-        verbose: false,
       });
 
       const request: JSONRPCRequest = {

@@ -86,7 +86,7 @@ describe("server-setup", () => {
         name: "test-server",
         version: "1.0.0",
         proxy: mockProxy,
-        verbose: true,
+        verbose: false,
       };
 
       await setupMcpServer(config);
@@ -102,7 +102,7 @@ describe("server-setup", () => {
         name: "test-server",
         version: "1.0.0",
         proxy: mockProxy,
-        verbose: true,
+        verbose: false,
       };
 
       const testRequest: JSONRPCRequest = {
@@ -136,7 +136,7 @@ describe("server-setup", () => {
         name: "test-server",
         version: "1.0.0",
         proxy: mockProxy,
-        verbose: true,
+        verbose: false,
       };
 
       const testRequest: JSONRPCRequest = {
@@ -197,7 +197,7 @@ describe("server-setup", () => {
         name: "test-server",
         version: "1.0.0",
         proxy: mockProxy,
-        verbose: true,
+        verbose: false,
       };
 
       const testRequest: JSONRPCRequest = {

@@ -62,7 +62,6 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 30000,
-        verbose: true,
       };
 
       // startProxyを開始して短時間後に終了シグナルを送信
@@ -80,7 +79,6 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 120000,
-        verbose: false,
       };
 
       const proxyPromise = startProxy(options);
@@ -93,7 +91,6 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 30000,
-        verbose: true,
       };
 
       const proxyPromise = startProxy(options);
@@ -113,7 +110,6 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "ftp://example.com", // HTTPでもHTTPSでもない
         timeout: 30000,
-        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -123,7 +119,6 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: -1,
-        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -133,7 +128,6 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 700000, // 10分を超える
-        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -146,7 +140,6 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "invalid-url",
         timeout: 30000,
-        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -157,7 +150,6 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "ftp://example.com", // HTTPでもHTTPSでもない
         timeout: 30000,
-        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -169,7 +161,6 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 30000,
-        verbose: false,
       };
 
       const proxyPromise = startProxy(options);
@@ -182,7 +173,6 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 30000,
-        verbose: false,
       };
 
       const proxyPromise = startProxy(options);
@@ -204,7 +194,6 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 30000,
-        verbose: false,
       };
 
       const proxyPromise = startProxy(options);
@@ -227,7 +216,6 @@ describe("Proxy E2E Tests", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 30000,
-        verbose: false,
       };
 
       const proxyPromise = startProxy(options);

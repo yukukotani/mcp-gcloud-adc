@@ -8,8 +8,7 @@ async function main(): Promise<void> {
     if (process.argv.length === 2 || (process.argv.length === 4 && process.argv[2] === '-u')) {
       // stdio MCP サーバーモード
       const url = process.argv.length === 4 && process.argv[3] ? process.argv[3] : 'https://httpbin.org/post';
-      const verbose = process.env.MCP_PROXY_LOG_LEVEL === 'debug' || process.env.VERBOSE === 'true';
-      await startProxy({ url, timeout: 120000, verbose });
+      await startProxy({ url, timeout: 120000 });
       return;
     }
     

@@ -50,9 +50,6 @@ export class DefaultConfigManager implements ConfigManager {
       proxy: {
         url: cliOptions.url,
         timeout: this.parseTimeout(env.MCP_PROXY_TIMEOUT) || cliOptions.timeout,
-        ...(cliOptions.verbose !== undefined && {
-          verbose: cliOptions.verbose,
-        }),
       },
       auth: {
         ...(env.GOOGLE_APPLICATION_CREDENTIALS && {
@@ -63,11 +60,9 @@ export class DefaultConfigManager implements ConfigManager {
         }),
       },
       logging: {
-        level:
-          this.parseLogLevel(env.MCP_PROXY_LOG_LEVEL) ||
-          (cliOptions.verbose ? "debug" : "info"),
+        level: this.parseLogLevel(env.MCP_PROXY_LOG_LEVEL) || "info",
         type: this.parseLogType(env.LOG_TYPE) || "file",
-        verbose: cliOptions.verbose || false,
+        verbose: false,
         ...(env.LOG_FILE_PATH && { filePath: env.LOG_FILE_PATH }),
       },
     };

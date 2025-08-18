@@ -16,13 +16,11 @@ export type ProxyConfig = {
   timeout: number;
   authClient: AuthClient;
   httpClient: HttpClient;
-  verbose?: boolean;
 };
 
 export type ProxyOptions = {
   url: string;
   timeout: number;
-  verbose?: boolean;
 };
 
 export type ProxyError = {

@@ -35,7 +35,6 @@ describe("CLI", () => {
         validateCliOptions({
           url: "https://example.com",
           timeout: 60000,
-          verbose: true,
         }),
       ).not.toThrow();
     });
@@ -89,7 +88,6 @@ describe("CLI", () => {
       const options: CliOptions = {
         url: "https://example.com",
         timeout: 60000,
-        verbose: true,
       };
       vi.mocked(startProxy).mockResolvedValue(undefined);
 
@@ -102,7 +100,6 @@ describe("CLI", () => {
       const options: CliOptions = {
         url: "https://example.com",
         timeout: 120000,
-        verbose: true,
       };
       vi.mocked(startProxy).mockResolvedValue(undefined);
 
@@ -118,7 +115,6 @@ describe("CLI", () => {
       const options: CliOptions = {
         url: "https://example.com",
         timeout: 120000,
-        verbose: false,
       };
       vi.mocked(startProxy).mockResolvedValue(undefined);
 

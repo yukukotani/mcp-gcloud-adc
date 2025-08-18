@@ -31,7 +31,7 @@ export type ErrorHandler = {
 };
 
 export class DefaultErrorHandler implements ErrorHandler {
-  constructor(private verbose: boolean = false) {}
+  constructor() {}
 
   createErrorResponse(
     id: string | number | null,
@@ -167,18 +167,6 @@ export class DefaultErrorHandler implements ErrorHandler {
     process.stderr.write(
       `[${timestamp}]${contextStr} ERROR: ${error.message}\n`,
     );
-
-    if (this.verbose && error.details) {
-      process.stderr.write(
-        `[${timestamp}]${contextStr} Details: ${JSON.stringify(error.details, null, 2)}\n`,
-      );
-    }
-
-    if (this.verbose && error.originalError) {
-      process.stderr.write(
-        `[${timestamp}]${contextStr} Original error: ${error.originalError}\n`,
-      );
-    }
   }
 
   handleUnexpectedError(error: unknown, context?: string): ApplicationError {
@@ -245,8 +233,8 @@ export class DefaultErrorHandler implements ErrorHandler {
   }
 }
 
-export function createErrorHandler(verbose: boolean = false): ErrorHandler {
-  return new DefaultErrorHandler(verbose);
+export function createErrorHandler(): ErrorHandler {
+  return new DefaultErrorHandler();
 }
 
 export function isApplicationError(error: unknown): error is ApplicationError {

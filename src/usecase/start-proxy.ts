@@ -1,79 +1,43 @@
-import type { Logger as PinoLogger } from "pino";
 import { createAuthClient } from "../libs/auth/google-auth.js";
-import { createConfigManager, getPackageInfo } from "../libs/config/manager.js";
-import { createErrorHandler } from "../libs/error/handler.js";
 import { createHttpClient } from "../libs/http/http-client.js";
-import { createLogger, setGlobalLogger } from "../libs/logging/logger.js";
 import { setupSimpleMcpServer } from "../presentation/mcp-server-simple.js";
 import { createMcpProxy } from "./mcp-proxy/handler.js";
 import type { ProxyOptions } from "./mcp-proxy/types.js";
 
 export async function startProxy(options: ProxyOptions): Promise<void> {
-  const packageInfo = getPackageInfo();
-  const configManager = createConfigManager(packageInfo);
-  const config = configManager.loadConfig(options);
-
-  // 設定の検証
-  const validation = configManager.validateConfig(config);
-  if (!validation.valid) {
-    throw new Error(
-      `Configuration validation failed:\n${validation.errors.join("\n")}`,
-    );
+  // URLの検証
+  if (!options.url) {
+    throw new Error("URL is required");
   }
-
-  // ロガーの初期化
-  const logger = createLogger(
-    config.logging.type === "pretty"
-      ? "console"
-      : config.logging.type === "json"
-        ? "structured"
-        : "file",
-    config.logging.verbose,
-    config.logging.verbose ? config.logging.level : "silent",
-    "mcp-proxy",
-    config.logging.filePath,
-  );
-  setGlobalLogger(logger);
-
-  // エラーハンドラーの初期化
-  const errorHandler = createErrorHandler(config.logging.verbose);
-
-  logger.info(`Starting ${config.server.name} v${config.server.version}`);
-  logger.info(`Target URL: ${config.proxy.url}`);
-  logger.info(`Timeout: ${config.proxy.timeout}ms`);
+  
+  if (!options.url.startsWith("https://") && !options.url.startsWith("http://")) {
+    throw new Error("URL must be HTTP or HTTPS");
+  }
 
   try {
     // 認証クライアントの初期化
-    logger.debug("Initializing authentication client");
-    const authClient = createAuthClient(config.auth);
+    const authClient = createAuthClient({});
 
     // HTTPクライアントの初期化
-    logger.debug("Initializing HTTP client");
     const httpClient = createHttpClient();
 
     // プロキシハンドラーの作成
-    logger.debug("Creating proxy handler");
     const proxy = createMcpProxy({
-      targetUrl: config.proxy.url,
-      timeout: config.proxy.timeout,
+      targetUrl: options.url,
+      timeout: options.timeout,
       authClient,
       httpClient,
-      verbose: config.proxy.verbose || false,
     });
 
     // MCPサーバーのセットアップと接続
-    logger.debug("Setting up MCP proxy server");
     await setupSimpleMcpServer({
-      name: config.server.name,
-      version: config.server.version,
+      name: "mcp-gcloud-adc",
+      version: "1.0.0",
       proxy,
-      verbose: config.proxy.verbose || false,
     });
 
     // グレースフルシャットダウンの設定
-    setupGracefulShutdown(logger);
-
-    logger.info("MCP proxy server started successfully");
+    setupGracefulShutdown();
 
     // プロセスが終了するまで待機
     await new Promise((resolve) => {
@@ -81,28 +45,25 @@ export async function startProxy(options: ProxyOptions): Promise<void> {
       process.on("SIGTERM", resolve);
     });
   } catch (error) {
-    const appError = errorHandler.handleUnexpectedError(error, "startup");
-    logger.error({ error: appError }, "Failed to start proxy server");
-    throw new Error(appError.message);
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to start proxy"
+    );
   }
 }
 
-function setupGracefulShutdown(logger: PinoLogger): void {
-  const shutdown = (signal: string) => {
-    logger.info(`Received ${signal}, shutting down gracefully`);
+function setupGracefulShutdown(): void {
+  const shutdown = () => {
     process.exit(0);
   };
 
-  process.on("SIGINT", () => shutdown("SIGINT"));
-  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 
-  process.on("uncaughtException", (error) => {
-    logger.error({ error }, "Uncaught exception");
+  process.on("uncaughtException", () => {
     process.exit(1);
   });
 
-  process.on("unhandledRejection", (reason) => {
-    logger.error({ reason }, "Unhandled rejection");
+  process.on("unhandledRejection", () => {
     process.exit(1);
   });
 }

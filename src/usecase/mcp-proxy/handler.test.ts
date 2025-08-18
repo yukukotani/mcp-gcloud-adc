@@ -30,7 +30,6 @@ describe("McpProxyHandler", () => {
       timeout: 5000,
       authClient: mockAuthClient,
       httpClient: mockHttpClient,
-      verbose: false,
     };
 
     proxy = new McpProxyHandler(config);
@@ -288,50 +287,6 @@ describe("McpProxyHandler", () => {
         },
       });
     });
-
-    it("verboseモードでログを出力する", async () => {
-      const verboseConfig = { ...config, verbose: true };
-      const verboseProxy = new McpProxyHandler(verboseConfig);
-
-      const request: JSONRPCRequest = {
-        jsonrpc: "2.0" as const,
-        id: 1,
-        method: "tools/list",
-        params: {},
-      };
-
-      const expectedResponse: JSONRPCResponse = {
-        jsonrpc: "2.0" as const,
-        id: 1,
-        result: { tools: [] },
-      };
-
-      vi.mocked(mockAuthClient.getIdToken).mockResolvedValue({
-        type: "success",
-        token: "mock-token",
-        expiresAt: new Date(Date.now() + 3600000),
-      });
-
-      vi.mocked(mockHttpClient.post).mockResolvedValue({
-        type: "success",
-        data: expectedResponse,
-        status: 200,
-        headers: {},
-      });
-
-      const mockStderr = vi
-        .spyOn(process.stderr, "write")
-        .mockImplementation(() => true);
-
-      await verboseProxy.handleRequest(request);
-
-      expect(mockStderr).toHaveBeenCalledWith(
-        expect.stringContaining("Proxying request: tools/list"),
-      );
-      expect(mockStderr).toHaveBeenCalledWith(
-        expect.stringContaining("Response received for: tools/list"),
-      );
-    });
   });
 
   describe("handleMessage", () => {
@@ -401,35 +356,6 @@ describe("McpProxyHandler", () => {
       });
     });
 
-    it("通知の認証エラーを処理する", async () => {
-      const notification = {
-        jsonrpc: "2.0" as const,
-        method: "notifications/cancelled",
-        params: {},
-      };
-
-      const verboseConfig = { ...config, verbose: true };
-      const verboseProxy = new McpProxyHandler(verboseConfig);
-
-      vi.mocked(mockAuthClient.getIdToken).mockResolvedValue({
-        type: "error",
-        error: {
-          kind: "no-credentials",
-          message: "No credentials found",
-        },
-      });
-
-      const mockStderr = vi
-        .spyOn(process.stderr, "write")
-        .mockImplementation(() => true);
-
-      const result = await verboseProxy.handleMessage(notification);
-
-      expect(result).toEqual(notification);
-      expect(mockStderr).toHaveBeenCalledWith(
-        expect.stringContaining("Authentication failed for notification"),
-      );
-    });
   });
 });
 

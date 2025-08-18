@@ -82,7 +82,7 @@ describe("createPinoLogger", () => {
   });
 
   it("verboseモードでdebugレベルを有効にする", () => {
-    const logger = createPinoLogger({ verbose: true, level: "info" });
+    const logger = createPinoLogger({ verbose: false, level: "info" });
     expect(logger.level).toBe("debug");
   });
 

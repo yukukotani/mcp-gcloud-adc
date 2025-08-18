@@ -11,7 +11,7 @@ describe("DefaultErrorHandler", () => {
   let mockStderr: any;
 
   beforeEach(() => {
-    errorHandler = new DefaultErrorHandler(false);
+    errorHandler = new DefaultErrorHandler();
     mockStderr = vi
       .spyOn(process.stderr, "write")
       .mockImplementation(() => true);
@@ -262,27 +262,6 @@ describe("DefaultErrorHandler", () => {
       );
     });
 
-    it("verboseモードで詳細をログ出力する", () => {
-      const verboseHandler = new DefaultErrorHandler(true);
-      const error: ApplicationError = {
-        kind: "http-error",
-        message: "HTTP 404",
-        details: { status: 404, body: "Not found" },
-        originalError: new Error("Original error"),
-      };
-
-      verboseHandler.logError(error);
-
-      expect(mockStderr).toHaveBeenCalledWith(
-        expect.stringMatching(/ERROR: HTTP 404/),
-      );
-      expect(mockStderr).toHaveBeenCalledWith(
-        expect.stringMatching(/Details:/),
-      );
-      expect(mockStderr).toHaveBeenCalledWith(
-        expect.stringMatching(/Original error:/),
-      );
-    });
   });
 
   describe("handleUnexpectedError", () => {
@@ -338,7 +317,7 @@ describe("DefaultErrorHandler", () => {
 
 describe("createErrorHandler", () => {
   it("DefaultErrorHandlerのインスタンスを作成する", () => {
-    const handler = createErrorHandler(true);
+    const handler = createErrorHandler();
     expect(handler).toBeInstanceOf(DefaultErrorHandler);
   });
 });

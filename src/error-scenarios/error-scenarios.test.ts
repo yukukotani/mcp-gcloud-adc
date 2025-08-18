@@ -51,7 +51,6 @@ describe("Error Scenarios", () => {
           post: vi.fn(),
           postStream: vi.fn(),
         },
-        verbose: false,
       });
 
       const request: JSONRPCRequest = {
@@ -91,7 +90,6 @@ describe("Error Scenarios", () => {
           post: vi.fn(),
           postStream: vi.fn(),
         },
-        verbose: false,
       });
 
       const request: JSONRPCRequest = {
@@ -128,7 +126,6 @@ describe("Error Scenarios", () => {
           post: vi.fn(),
           postStream: vi.fn(),
         },
-        verbose: false,
       });
 
       const request: JSONRPCRequest = {
@@ -172,7 +169,6 @@ describe("Error Scenarios", () => {
           }),
         },
         httpClient: mockHttpClient,
-        verbose: false,
       });
 
       const request: JSONRPCRequest = {
@@ -214,7 +210,6 @@ describe("Error Scenarios", () => {
           }),
         },
         httpClient: mockHttpClient,
-        verbose: false,
       });
 
       const request: JSONRPCRequest = {
@@ -259,7 +254,6 @@ describe("Error Scenarios", () => {
           }),
         },
         httpClient: mockHttpClient,
-        verbose: false,
       });
 
       const request: JSONRPCRequest = {
@@ -302,7 +296,6 @@ describe("Error Scenarios", () => {
           }),
         },
         httpClient: mockHttpClient,
-        verbose: false,
       });
 
       const request: JSONRPCRequest = {
@@ -346,7 +339,6 @@ describe("Error Scenarios", () => {
           }),
         },
         httpClient: mockHttpClient,
-        verbose: false,
       });
 
       const request: JSONRPCRequest = {
@@ -379,7 +371,6 @@ describe("Error Scenarios", () => {
           post: vi.fn(),
           postStream: vi.fn(),
         },
-        verbose: false,
       });
 
       // JSON-RPC仕様に準拠しないリクエスト
@@ -401,7 +392,6 @@ describe("Error Scenarios", () => {
       const options: ProxyOptions = {
         url: "invalid-url",
         timeout: 30000,
-        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -412,7 +402,6 @@ describe("Error Scenarios", () => {
       const options: ProxyOptions = {
         url: "ftp://invalid-protocol.example.com", // 無効なプロトコル
         timeout: 30000,
-        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -422,7 +411,6 @@ describe("Error Scenarios", () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
         timeout: 0, // 0ms - 無効なタイムアウト
-        verbose: false,
       };
 
       await expect(startProxy(options)).rejects.toThrow();
@@ -460,7 +448,6 @@ describe("Error Scenarios", () => {
           }),
         },
         httpClient: mockHttpClient,
-        verbose: false,
       });
 
       const request: JSONRPCRequest = {
@@ -505,7 +492,6 @@ describe("Error Scenarios", () => {
           }),
         },
         httpClient: mockHttpClient,
-        verbose: false,
       });
 
       const requests = Array.from({ length: 10 }, (_, i) => ({
