@@ -41,10 +41,3 @@ export type StreamChunk =
       type: "error";
       error: HttpError;
     };
-
-export type HttpRequestInit = {
-  method: string;
-  headers: Record<string, string>;
-  body?: string;
-  signal?: AbortSignal;
-};

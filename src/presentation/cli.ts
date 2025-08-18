@@ -2,11 +2,6 @@
 import { cli } from "gunshi";
 import { startProxy } from "../usecase/start-proxy.js";
 
-export type CliArgs = {
-  url: string;
-  timeout: number;
-};
-
 const proxyCommand = {
   name: "mcp-gcloud-proxy",
   description: "Google Cloud Run MCP Server Proxy with ADC authentication",

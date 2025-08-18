@@ -10,7 +10,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import type { McpProxy } from "../usecase/mcp-proxy/types.js";
 
-export type IdGeneratorFn = () => string | number;
+type IdGeneratorFn = () => string | number;
 
 type HandlerConfig = {
   proxy: McpProxy;

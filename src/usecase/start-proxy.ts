@@ -4,7 +4,7 @@ import { setupSimpleMcpServer } from "../presentation/mcp-server-simple.js";
 import { createMcpProxy } from "./mcp-proxy/handler.js";
 import type { ProxyOptions } from "./mcp-proxy/types.js";
 
-export type StartProxyResult =
+type StartProxyResult =
   | { type: "success" }
   | { type: "error"; error: { kind: string; message: string } };
 

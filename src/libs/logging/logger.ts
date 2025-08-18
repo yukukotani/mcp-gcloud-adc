@@ -1,9 +1,9 @@
 import type { LevelWithSilent, Logger as PinoLogger } from "pino";
 import pino from "pino";
 
-export type LogType = "pretty" | "json" | "file";
+type LogType = "pretty" | "json" | "file";
 
-export type LoggerConfig = {
+type LoggerConfig = {
   level?: pino.LevelWithSilent;
   context?: string;
   type?: LogType;
@@ -46,7 +46,7 @@ export function createPinoLogger(config: LoggerConfig = {}): PinoLogger {
   }
 }
 
-export type LoggerType = "console" | "structured" | "file";
+type LoggerType = "console" | "structured" | "file";
 
 export function createLogger(
   type: LoggerType = "file",

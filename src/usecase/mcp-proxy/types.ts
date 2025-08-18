@@ -22,19 +22,3 @@ export type ProxyOptions = {
   url: string;
   timeout: number;
 };
-
-export type ProxyError = {
-  code: number;
-  message: string;
-  data?: unknown;
-};
-
-export type ProxyResult<T = unknown> =
-  | { type: "success"; data: T }
-  | { type: "error"; error: ProxyError };
-
-export type RequestContext = {
-  requestId: string | number | null;
-  method: string;
-  timestamp: Date;
-};

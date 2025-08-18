@@ -6,16 +6,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [[ jq -r '.tool_input.command' == 'git commit'* ]]; then echo 'Checking lint before commit...'; pnpm lint; fi"
+            "command": "jq -r '.tool_input.command // \"\"' | grep -q \"^git commit\" && (bun run lint 1>/dev/null; [ $? -eq 1 ] && echo '{\"decision\":\"block\",\"reason\":\"Lint errors found. Fix them before committing.\"}' && exit 2) || true"
           }
         ]
       },
       {
-        "matcher": "Write|Edit|MultiEdit",
+        "matcher": "Write|Edit|MultiEdit|Update",
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path | select(endswith(\".js\") or endswith(\".ts\") or endswith(\".jsx\") or endswith(\".tsx\"))' | xargs -r pnpm fix"
+            "command": "jq -r '.tool_input.file_path | select(endswith(\".js\") or endswith(\".ts\") or endswith(\".jsx\") or endswith(\".tsx\"))' | xargs -r pnpm biome format --write"
           }
         ]
       }

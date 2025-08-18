@@ -6,7 +6,7 @@ import {
   setupGracefulShutdown,
 } from "./mcp-server-handlers.js";
 
-export type SimpleServerSetupConfig = {
+type SimpleServerSetupConfig = {
   name: string;
   version: string;
   proxy: McpProxy;
