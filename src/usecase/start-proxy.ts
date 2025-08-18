@@ -3,6 +3,7 @@ import { createConfigManager, getPackageInfo } from "../libs/config/manager.js";
 import { createErrorHandler } from "../libs/error/handler.js";
 import { createHttpClient } from "../libs/http/http-client.js";
 import { createLogger, setGlobalLogger } from "../libs/logging/logger.js";
+import type { Logger as PinoLogger } from "pino";
 import { setupMcpServer } from "../presentation/mcp-server.js";
 import { createMcpProxy } from "./mcp-proxy/handler.js";
 import type { ProxyOptions } from "./mcp-proxy/types.js";
@@ -25,8 +26,8 @@ export async function startProxy(options: ProxyOptions): Promise<void> {
     config.logging.type,
     config.logging.verbose,
     config.logging.level,
+    "mcp-proxy",
   );
-  logger.setContext("mcp-proxy");
   setGlobalLogger(logger);
 
   // エラーハンドラーの初期化
@@ -76,12 +77,12 @@ export async function startProxy(options: ProxyOptions): Promise<void> {
     });
   } catch (error) {
     const appError = errorHandler.handleUnexpectedError(error, "startup");
-    logger.error("Failed to start proxy server", appError);
+    logger.error({ error: appError }, "Failed to start proxy server");
     throw new Error(appError.message);
   }
 }
 
-function setupGracefulShutdown(logger: any): void {
+function setupGracefulShutdown(logger: PinoLogger): void {
   const shutdown = (signal: string) => {
     logger.info(`Received ${signal}, shutting down gracefully`);
     process.exit(0);
@@ -91,12 +92,12 @@ function setupGracefulShutdown(logger: any): void {
   process.on("SIGTERM", () => shutdown("SIGTERM"));
 
   process.on("uncaughtException", (error) => {
-    logger.error("Uncaught exception", error);
+    logger.error({ error }, "Uncaught exception");
     process.exit(1);
   });
 
   process.on("unhandledRejection", (reason) => {
-    logger.error("Unhandled rejection", reason);
+    logger.error({ reason }, "Unhandled rejection");
     process.exit(1);
   });
 }
