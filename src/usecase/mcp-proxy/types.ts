@@ -22,7 +22,7 @@ export type ProxyConfig = {
 export type ProxyOptions = {
   url: string;
   timeout: number;
-  verbose: boolean;
+  verbose?: boolean;
 };
 
 export type ProxyError = {

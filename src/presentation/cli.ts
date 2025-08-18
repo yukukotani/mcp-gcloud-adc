@@ -78,7 +78,13 @@ export async function executeProxyCommand(options: CliOptions): Promise<void> {
   }
 
   try {
-    await startProxy(options);
+    // verboseプロパティをboolean型として扱う
+    const proxyOptions = {
+      url: options.url,
+      timeout: options.timeout,
+      verbose: options.verbose || false,
+    };
+    await startProxy(proxyOptions);
   } catch (error) {
     process.stderr.write(
       `Failed to start proxy: ${error instanceof Error ? error.message : "Unknown error"}\n`,

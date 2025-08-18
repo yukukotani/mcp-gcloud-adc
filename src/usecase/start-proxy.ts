@@ -52,7 +52,7 @@ export async function startProxy(options: ProxyOptions): Promise<void> {
       timeout: config.proxy.timeout,
       authClient,
       httpClient,
-      verbose: config.proxy.verbose,
+      verbose: config.proxy.verbose || false,
     });
 
     // MCPサーバーのセットアップと接続
@@ -61,7 +61,7 @@ export async function startProxy(options: ProxyOptions): Promise<void> {
       name: config.server.name,
       version: config.server.version,
       proxy,
-      verbose: config.proxy.verbose,
+      verbose: config.proxy.verbose || false,
     });
 
     // グレースフルシャットダウンの設定

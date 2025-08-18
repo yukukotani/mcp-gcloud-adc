@@ -1,10 +1,15 @@
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import type { JSONRPCMessage } from "@modelcontextprotocol/sdk/types.js";
+import type { JSONRPCMessage, JSONRPCRequest } from "@modelcontextprotocol/sdk/types.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { McpProxy } from "../../usecase/mcp-proxy/types.js";
 import { setupMcpServer } from "./server-setup.js";
 
-// Stdioトランスポートのモック
+// SDK のモック
+vi.mock("@modelcontextprotocol/sdk/server/index.js", () => ({
+  Server: vi.fn(),
+}));
+
 vi.mock("@modelcontextprotocol/sdk/server/stdio.js", () => ({
   StdioServerTransport: vi.fn(),
 }));
@@ -12,6 +17,7 @@ vi.mock("@modelcontextprotocol/sdk/server/stdio.js", () => ({
 describe("server-setup", () => {
   let mockProxy: McpProxy;
   let mockTransport: any;
+  let mockServer: any;
   let mockStderr: any;
 
   beforeEach(() => {
@@ -21,17 +27,20 @@ describe("server-setup", () => {
     };
 
     mockTransport = {
-      onmessage: vi.fn(),
-      onerror: vi.fn(),
-      onclose: vi.fn(),
+      onmessage: undefined,
       send: vi.fn(),
       close: vi.fn(),
+    };
+
+    mockServer = {
+      connect: vi.fn(),
     };
 
     mockStderr = vi
       .spyOn(process.stderr, "write")
       .mockImplementation(() => true);
 
+    vi.mocked(Server).mockImplementation(() => mockServer);
     vi.mocked(StdioServerTransport).mockImplementation(() => mockTransport);
     vi.clearAllMocks();
   });
@@ -47,10 +56,26 @@ describe("server-setup", () => {
 
       await setupMcpServer(config);
 
+      expect(Server).toHaveBeenCalledWith(
+        {
+          name: "test-server",
+          version: "1.0.0",
+        },
+        {
+          capabilities: {
+            tools: {},
+            resources: {
+              subscribe: true,
+              listChanged: true,
+            },
+            prompts: {},
+            sampling: {},
+          },
+        },
+      );
       expect(StdioServerTransport).toHaveBeenCalledOnce();
+      expect(mockServer.connect).toHaveBeenCalledWith(mockTransport);
       expect(mockTransport.onmessage).toBeDefined();
-      expect(mockTransport.onerror).toBeDefined();
-      expect(mockTransport.onclose).toBeDefined();
     });
 
     it("verboseモードで適切なログを出力する", async () => {
@@ -69,7 +94,7 @@ describe("server-setup", () => {
       expect(mockStderr).toHaveBeenCalledWith("MCP proxy server ready\n");
     });
 
-    it("メッセージを適切にプロキシする", async () => {
+    it("リクエストメッセージを適切にプロキシする", async () => {
       const config = {
         name: "test-server",
         version: "1.0.0",
@@ -77,10 +102,11 @@ describe("server-setup", () => {
         verbose: true,
       };
 
-      const testMessage: JSONRPCMessage = {
+      const testRequest: JSONRPCRequest = {
         jsonrpc: "2.0" as const,
         method: "tools/list",
         id: 1,
+        params: {},
       };
 
       const testResponse: JSONRPCMessage = {
@@ -89,16 +115,17 @@ describe("server-setup", () => {
         result: { tools: [] },
       };
 
-      (mockProxy.handleMessage as any).mockResolvedValue(testResponse);
+      (mockProxy.handleRequest as any).mockResolvedValue(testResponse);
 
       await setupMcpServer(config);
 
       // onmessageハンドラーを取得して実行
       const onmessageHandler = mockTransport.onmessage;
-      await onmessageHandler(testMessage);
+      await onmessageHandler(testRequest);
 
-      expect(mockProxy.handleMessage).toHaveBeenCalledWith(testMessage);
+      expect(mockProxy.handleRequest).toHaveBeenCalledWith(testRequest);
       expect(mockTransport.send).toHaveBeenCalledWith(testResponse);
+      expect(mockStderr).toHaveBeenCalledWith("[Proxy] Handling: tools/list\n");
     });
 
     it("プロキシエラーを適切に処理する", async () => {
@@ -109,22 +136,23 @@ describe("server-setup", () => {
         verbose: true,
       };
 
-      const testMessage: JSONRPCMessage = {
+      const testRequest: JSONRPCRequest = {
         jsonrpc: "2.0" as const,
         method: "tools/list",
         id: 1,
+        params: {},
       };
 
       const error = new Error("Proxy error");
-      (mockProxy.handleMessage as any).mockRejectedValue(error);
+      (mockProxy.handleRequest as any).mockRejectedValue(error);
 
       await setupMcpServer(config);
 
       // onmessageハンドラーを取得して実行
       const onmessageHandler = mockTransport.onmessage;
-      await onmessageHandler(testMessage);
+      await onmessageHandler(testRequest);
 
-      expect(mockProxy.handleMessage).toHaveBeenCalledWith(testMessage);
+      expect(mockProxy.handleRequest).toHaveBeenCalledWith(testRequest);
       expect(mockTransport.send).toHaveBeenCalledWith({
         jsonrpc: "2.0",
         id: 1,
@@ -133,6 +161,9 @@ describe("server-setup", () => {
           message: "Proxy error: Proxy error",
         },
       });
+      expect(mockStderr).toHaveBeenCalledWith(
+        "[Proxy] Error: Proxy error\n",
+      );
     });
 
     it("通知メッセージを適切に処理する", async () => {
@@ -160,7 +191,7 @@ describe("server-setup", () => {
       expect(mockTransport.send).not.toHaveBeenCalled(); // 通知にはレスポンスしない
     });
 
-    it("トランスポートエラーを適切に処理する", async () => {
+    it("プロキシエラー時にverboseメッセージを出力する", async () => {
       const config = {
         name: "test-server",
         version: "1.0.0",
@@ -168,31 +199,27 @@ describe("server-setup", () => {
         verbose: true,
       };
 
+      const testRequest: JSONRPCRequest = {
+        jsonrpc: "2.0" as const,
+        method: "tools/list",
+        id: 1,
+        params: {},
+      };
+
+      const error = new Error("Test error");
+      (mockProxy.handleRequest as any).mockRejectedValue(error);
+
       await setupMcpServer(config);
 
-      const error = new Error("Transport error");
-      const onerrorHandler = mockTransport.onerror;
-      onerrorHandler(error);
+      const onmessageHandler = mockTransport.onmessage;
+      await onmessageHandler(testRequest);
 
       expect(mockStderr).toHaveBeenCalledWith(
-        "[Proxy] Transport error: Transport error\n",
+        "[Proxy] Handling: tools/list\n",
       );
-    });
-
-    it("トランスポートクローズを適切に処理する", async () => {
-      const config = {
-        name: "test-server",
-        version: "1.0.0",
-        proxy: mockProxy,
-        verbose: true,
-      };
-
-      await setupMcpServer(config);
-
-      const oncloseHandler = mockTransport.onclose;
-      oncloseHandler();
-
-      expect(mockStderr).toHaveBeenCalledWith("[Proxy] Transport closed\n");
+      expect(mockStderr).toHaveBeenCalledWith(
+        "[Proxy] Error: Test error\n",
+      );
     });
   });
 });
