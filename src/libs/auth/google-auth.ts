@@ -84,7 +84,9 @@ const fetchNewToken = async (
       };
     }
 
-    const idToken = await (client as any).fetchIdToken(audience);
+    const idToken = await (
+      client as { fetchIdToken: (audience: string) => Promise<string> }
+    ).fetchIdToken(audience);
 
     if (!idToken || typeof idToken !== "string") {
       return {
@@ -154,7 +156,11 @@ const refreshToken = async (
 };
 
 const createGoogleAuthState = (config: AuthConfig = {}): GoogleAuthState => {
-  const authOptions: any = {
+  const authOptions: {
+    scopes: string[];
+    keyFilename?: string;
+    projectId?: string;
+  } = {
     scopes: [], // IDトークンには不要
   };
 

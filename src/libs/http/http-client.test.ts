@@ -8,7 +8,10 @@ global.fetch = mockFetch;
 
 describe("HttpClient", () => {
   let httpClient: ReturnType<typeof createHttpClient>;
-  let mockAbortController: any;
+  let mockAbortController: {
+    abort: ReturnType<typeof vi.fn>;
+    signal: { aborted: boolean };
+  };
 
   beforeEach(() => {
     httpClient = createHttpClient();

@@ -36,7 +36,7 @@ vi.mock("../presentation/mcp-server-simple.js", () => ({
 
 // プロセスのイベントリスナーをモック
 vi.spyOn(process, "on").mockImplementation(
-  (event: string | symbol, listener: any) => {
+  (event: string | symbol, listener: (...args: unknown[]) => void) => {
     if (event === "SIGINT" || event === "SIGTERM") {
       // すぐにリスナーを実行してテストを終了
       setTimeout(() => listener(), 10);

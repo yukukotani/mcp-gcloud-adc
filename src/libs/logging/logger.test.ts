@@ -164,7 +164,7 @@ describe("Global Logger", () => {
 
   it("グローバルロガーが未設定の場合デフォルトを作成する", () => {
     // グローバルロガーを明示的にクリア
-    (global as any).globalLogger = null;
+    (global as unknown as { globalLogger: unknown }).globalLogger = null;
 
     const logger = getGlobalLogger();
     expect(logger).toBeDefined();

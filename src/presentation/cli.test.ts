@@ -12,16 +12,18 @@ vi.mock("../usecase/start-proxy.js", () => ({
 }));
 
 describe("CLI", () => {
-  let mockStderr: any;
-  let mockExit: any;
+  let mockStderr: ReturnType<typeof vi.spyOn>;
+  let mockExit: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     mockStderr = vi
       .spyOn(process.stderr, "write")
-      .mockImplementation(() => true);
+      // biome-ignore lint/suspicious/noExplicitAny: Mock型の制約により必要
+      .mockImplementation(() => true) as any;
     mockExit = vi
       .spyOn(process, "exit")
-      .mockImplementation(() => undefined as never);
+      // biome-ignore lint/suspicious/noExplicitAny: Mock型の制約により必要
+      .mockImplementation(() => undefined as never) as any;
     vi.clearAllMocks();
   });
 

@@ -32,7 +32,7 @@ $ mcp-gcloud-proxy --url http://localhost:3000
 
 # With custom timeout
 $ mcp-gcloud-proxy -u https://my-service-abc123-uc.a.run.app -t 60000`,
-  run: async (ctx: any) => {
+  run: async (ctx: { values: { url: string; timeout: number } }) => {
     const { url, timeout } = ctx.values;
     await executeProxyCommand({ url, timeout });
   },

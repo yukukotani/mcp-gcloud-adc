@@ -3,6 +3,7 @@ import type {
   JSONRPCRequest,
   JSONRPCResponse,
 } from "@modelcontextprotocol/sdk/types.js";
+import type { HttpError } from "../../libs/http/types.js";
 import type { McpProxy, ProxyConfig } from "./types.js";
 
 const isValidJSONRPCResponse = (data: unknown): data is JSONRPCResponse => {
@@ -10,7 +11,12 @@ const isValidJSONRPCResponse = (data: unknown): data is JSONRPCResponse => {
     return false;
   }
 
-  const obj = data as any;
+  const obj = data as {
+    jsonrpc?: string;
+    id?: unknown;
+    result?: unknown;
+    error?: unknown;
+  };
 
   if (obj.jsonrpc !== "2.0") {
     return false;
@@ -28,8 +34,12 @@ const createErrorResponse = (
   code: number,
   message: string,
   data?: unknown,
-): any => {
-  const error: any = {
+): JSONRPCResponse => {
+  const error: {
+    code: number;
+    message: string;
+    data?: unknown;
+  } = {
     code,
     message,
   };
@@ -42,7 +52,8 @@ const createErrorResponse = (
     jsonrpc: "2.0",
     id: id as string | number,
     error,
-  };
+    // biome-ignore lint/suspicious/noExplicitAny: JSONRPCResponseの型がエラーレスポンスをうまく表現できないため必要
+  } as any;
 };
 
 const mapHttpStatusToJsonRpcCode = (status: number): number => {
@@ -63,7 +74,7 @@ const mapHttpStatusToJsonRpcCode = (status: number): number => {
 
 const createErrorResponseFromHttpError = (
   id: string | number | null,
-  httpError: any,
+  httpError: HttpError,
 ): JSONRPCResponse => {
   switch (httpError.kind) {
     case "network-error":
@@ -103,7 +114,7 @@ const createErrorResponseFromHttpError = (
       return createErrorResponse(
         id,
         -32603,
-        `Unknown HTTP error: ${httpError.message}`,
+        `Unknown HTTP error: ${(httpError as { message?: string }).message || "Unknown error"}`,
         httpError,
       );
   }
