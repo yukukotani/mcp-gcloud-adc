@@ -1,9 +1,12 @@
 {
-  "name": "typescript-template",
+  "name": "mcp-gcloud-adc",
   "version": "1.0.0",
   "type": "module",
-  "description": "TypeScript template for Coding AI Agent",
+  "description": "Google Cloud Run MCP Server Proxy with ADC authentication",
   "main": "dist/index.js",
+  "bin": {
+    "mcp-gcloud-proxy": "./dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
@@ -16,11 +19,16 @@
     "lint": "pnpm --parallel run '/^lint:/'",
     "fix": "biome check --write ."
   },
-  "keywords": [],
+  "keywords": ["mcp", "google-cloud", "cloud-run", "proxy", "adc"],
   "author": "",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "engines": {
     "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.3",
+    "google-auth-library": "^9.15.0",
+    "gunshi": "^0.26.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.4",
