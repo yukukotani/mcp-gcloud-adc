@@ -261,7 +261,6 @@ describe("DefaultErrorHandler", () => {
         ),
       );
     });
-
   });
 
   describe("handleUnexpectedError", () => {

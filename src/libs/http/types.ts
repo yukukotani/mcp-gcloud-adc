@@ -23,7 +23,13 @@ export type HttpError =
   | { kind: "network-error"; message: string; originalError?: unknown }
   | { kind: "timeout"; message: string }
   | { kind: "http-error"; status: number; message: string; body?: string }
-  | { kind: "parse-error"; message: string; originalError?: unknown; body?: string; parseError?: string };
+  | {
+      kind: "parse-error";
+      message: string;
+      originalError?: unknown;
+      body?: string;
+      parseError?: string;
+    };
 
 export type StreamChunk = {
   data: string;

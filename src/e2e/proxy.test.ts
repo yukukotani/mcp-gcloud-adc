@@ -27,8 +27,8 @@ vi.mock("../libs/http/http-client.js", () => ({
   }),
 }));
 
-vi.mock("../presentation/mcp-server.js", () => ({
-  setupMcpServer: vi.fn().mockImplementation(async () => {
+vi.mock("../presentation/mcp-server-simple.js", () => ({
+  setupSimpleMcpServer: vi.fn().mockImplementation(async () => {
     // MCPサーバーの起動をシミュレートするが、実際には起動しない
     return Promise.resolve();
   }),
@@ -189,7 +189,9 @@ describe("Proxy E2E Tests", () => {
 
   describe("MCPサーバー統合", () => {
     it("MCPサーバーが正しくセットアップされる", async () => {
-      const { setupMcpServer } = await import("../presentation/mcp-server.js");
+      const { setupSimpleMcpServer } = await import(
+        "../presentation/mcp-server-simple.js"
+      );
 
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
@@ -202,7 +204,7 @@ describe("Proxy E2E Tests", () => {
       await proxyPromise;
 
       // MCPサーバーのセットアップが呼ばれることを確認
-      expect(setupMcpServer).toHaveBeenCalledWith(
+      expect(setupSimpleMcpServer).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "mcp-gcloud-adc",
           version: "1.0.0",
@@ -211,7 +213,9 @@ describe("Proxy E2E Tests", () => {
     }, 10000);
 
     it("プロキシハンドラーが正しく設定される", async () => {
-      const { setupMcpServer } = await import("../presentation/mcp-server.js");
+      const { setupSimpleMcpServer } = await import(
+        "../presentation/mcp-server-simple.js"
+      );
 
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
@@ -223,7 +227,7 @@ describe("Proxy E2E Tests", () => {
 
       await proxyPromise;
 
-      const setupCall = vi.mocked(setupMcpServer).mock.calls[0]?.[0];
+      const setupCall = vi.mocked(setupSimpleMcpServer).mock.calls[0]?.[0];
       expect(setupCall).toBeDefined();
       expect(setupCall).toHaveProperty("proxy");
       expect(typeof setupCall?.proxy.handleRequest).toBe("function");

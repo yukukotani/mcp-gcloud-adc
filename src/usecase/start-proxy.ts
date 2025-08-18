@@ -9,8 +9,11 @@ export async function startProxy(options: ProxyOptions): Promise<void> {
   if (!options.url) {
     throw new Error("URL is required");
   }
-  
-  if (!options.url.startsWith("https://") && !options.url.startsWith("http://")) {
+
+  if (
+    !options.url.startsWith("https://") &&
+    !options.url.startsWith("http://")
+  ) {
     throw new Error("URL must be HTTP or HTTPS");
   }
 
@@ -46,7 +49,7 @@ export async function startProxy(options: ProxyOptions): Promise<void> {
     });
   } catch (error) {
     throw new Error(
-      error instanceof Error ? error.message : "Failed to start proxy"
+      error instanceof Error ? error.message : "Failed to start proxy",
     );
   }
 }

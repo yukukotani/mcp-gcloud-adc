@@ -12,9 +12,9 @@ export class McpProxyHandler implements McpProxy {
     try {
       // HTTP URL（主にテスト用）の場合は認証をスキップ
       const isHttpUrl = this.config.targetUrl.startsWith("http://");
-      let headers: Record<string, string> = {
+      const headers: Record<string, string> = {
         "Content-Type": "application/json",
-        "Accept": "application/json, text/event-stream",
+        Accept: "application/json, text/event-stream",
       };
 
       if (!isHttpUrl) {
@@ -79,9 +79,9 @@ export class McpProxyHandler implements McpProxy {
       try {
         // HTTP URL（主にテスト用）の場合は認証をスキップ
         const isHttpUrl = this.config.targetUrl.startsWith("http://");
-        let headers: Record<string, string> = {
+        const headers: Record<string, string> = {
           "Content-Type": "application/json",
-          "Accept": "application/json, text/event-stream",
+          Accept: "application/json, text/event-stream",
         };
 
         if (!isHttpUrl) {

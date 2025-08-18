@@ -355,7 +355,6 @@ describe("McpProxyHandler", () => {
         timeout: 5000,
       });
     });
-
   });
 });
 

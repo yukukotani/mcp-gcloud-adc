@@ -1,12 +1,12 @@
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import type { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
-  ListToolsRequestSchema,
   CallToolRequestSchema,
-  ListResourcesRequestSchema,
-  ReadResourceRequestSchema,
-  ListPromptsRequestSchema,
   GetPromptRequestSchema,
+  ListPromptsRequestSchema,
+  ListResourcesRequestSchema,
+  ListToolsRequestSchema,
+  ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import type { McpProxy } from "../usecase/mcp-proxy/types.js";
 
@@ -17,7 +17,10 @@ type HandlerConfig = {
   idGenerator: IdGeneratorFn;
 };
 
-export function registerProxyHandlers(server: Server, config: HandlerConfig): void {
+export function registerProxyHandlers(
+  server: Server,
+  config: HandlerConfig,
+): void {
   const { proxy, idGenerator } = config;
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {

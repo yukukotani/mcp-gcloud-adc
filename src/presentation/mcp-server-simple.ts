@@ -1,7 +1,10 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type { McpProxy } from "../usecase/mcp-proxy/types.js";
-import { registerProxyHandlers, setupGracefulShutdown } from "./mcp-server-handlers.js";
+import {
+  registerProxyHandlers,
+  setupGracefulShutdown,
+} from "./mcp-server-handlers.js";
 
 export type SimpleServerSetupConfig = {
   name: string;
@@ -9,7 +12,9 @@ export type SimpleServerSetupConfig = {
   proxy: McpProxy;
 };
 
-export async function setupSimpleMcpServer(config: SimpleServerSetupConfig): Promise<void> {
+export async function setupSimpleMcpServer(
+  config: SimpleServerSetupConfig,
+): Promise<void> {
   const server = new Server(
     {
       name: config.name,

@@ -40,10 +40,10 @@ export class FetchHttpClient implements HttpClient {
 
       const responseText = await response.text();
       let data: unknown;
-      
+
       try {
         // SSE形式のレスポンスをチェック（MCP over HTTP）
-        if (responseText.includes('event: message\ndata: ')) {
+        if (responseText.includes("event: message\ndata: ")) {
           const dataMatch = responseText.match(/data: (.+)/);
           if (dataMatch && dataMatch[1]) {
             data = JSON.parse(dataMatch[1]);
@@ -60,7 +60,10 @@ export class FetchHttpClient implements HttpClient {
             kind: "parse-error",
             message: "Failed to parse response as JSON",
             body: responseText,
-            parseError: parseError instanceof Error ? parseError.message : String(parseError),
+            parseError:
+              parseError instanceof Error
+                ? parseError.message
+                : String(parseError),
           },
         };
       }
@@ -196,7 +199,6 @@ export class FetchHttpClient implements HttpClient {
       return "";
     }
   }
-
 }
 
 export function createHttpClient(): HttpClient {
