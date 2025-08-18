@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { 
   ConsoleLogger, 
   StructuredLogger, 
@@ -6,7 +6,6 @@ import {
   setGlobalLogger, 
   getGlobalLogger 
 } from './logger.js';
-import type { LogLevel } from './logger.js';
 
 describe('ConsoleLogger', () => {
   let logger: ConsoleLogger;

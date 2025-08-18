@@ -1,16 +1,24 @@
 import { GoogleAuth } from 'google-auth-library';
-import type { AuthClient, GetIdTokenResult, AuthError, TokenCache, AuthConfig } from './types.js';
+import type { AuthClient, GetIdTokenResult, TokenCache, AuthConfig } from './types.js';
 
 export class GoogleAuthClient implements AuthClient {
   private googleAuth: GoogleAuth;
   private tokenCache: TokenCache = {};
 
   constructor(config: AuthConfig = {}) {
-    this.googleAuth = new GoogleAuth({
-      keyFilename: config.credentialsPath,
-      projectId: config.projectId,
+    const authOptions: any = {
       scopes: [], // IDトークンには不要
-    });
+    };
+    
+    if (config.credentialsPath) {
+      authOptions.keyFilename = config.credentialsPath;
+    }
+    
+    if (config.projectId) {
+      authOptions.projectId = config.projectId;
+    }
+    
+    this.googleAuth = new GoogleAuth(authOptions);
   }
 
   async getIdToken(audience: string): Promise<GetIdTokenResult> {
@@ -121,7 +129,12 @@ export class GoogleAuthClient implements AuthClient {
 
   private extractTokenExpiration(token: string): Date {
     try {
-      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        throw new Error('Invalid JWT format');
+      }
+      
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
       const exp = payload.exp;
       if (typeof exp === 'number') {
         return new Date(exp * 1000);

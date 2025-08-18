@@ -51,8 +51,8 @@ export class DefaultConfigManager implements ConfigManager {
         verbose: cliOptions.verbose,
       },
       auth: {
-        credentialsPath: env.GOOGLE_APPLICATION_CREDENTIALS,
-        projectId: env.GOOGLE_CLOUD_PROJECT,
+        ...(env.GOOGLE_APPLICATION_CREDENTIALS && { credentialsPath: env.GOOGLE_APPLICATION_CREDENTIALS }),
+        ...(env.GOOGLE_CLOUD_PROJECT && { projectId: env.GOOGLE_CLOUD_PROJECT }),
       },
       logging: {
         level: this.parseLogLevel(env.MCP_PROXY_LOG_LEVEL) || (cliOptions.verbose ? 'debug' : 'info'),
@@ -102,14 +102,28 @@ export class DefaultConfigManager implements ConfigManager {
   }
 
   getEnvironmentVariables(): EnvironmentVariables {
-    return {
-      GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-      GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT,
-      MCP_PROXY_LOG_LEVEL: process.env.MCP_PROXY_LOG_LEVEL,
-      MCP_PROXY_LOG_TYPE: process.env.MCP_PROXY_LOG_TYPE,
-      MCP_PROXY_TIMEOUT: process.env.MCP_PROXY_TIMEOUT,
-      HOSTNAME: process.env.HOSTNAME,
-    };
+    const env: EnvironmentVariables = {};
+    
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      env.GOOGLE_APPLICATION_CREDENTIALS = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    }
+    if (process.env.GOOGLE_CLOUD_PROJECT) {
+      env.GOOGLE_CLOUD_PROJECT = process.env.GOOGLE_CLOUD_PROJECT;
+    }
+    if (process.env.MCP_PROXY_LOG_LEVEL) {
+      env.MCP_PROXY_LOG_LEVEL = process.env.MCP_PROXY_LOG_LEVEL;
+    }
+    if (process.env.MCP_PROXY_LOG_TYPE) {
+      env.MCP_PROXY_LOG_TYPE = process.env.MCP_PROXY_LOG_TYPE;
+    }
+    if (process.env.MCP_PROXY_TIMEOUT) {
+      env.MCP_PROXY_TIMEOUT = process.env.MCP_PROXY_TIMEOUT;
+    }
+    if (process.env.HOSTNAME) {
+      env.HOSTNAME = process.env.HOSTNAME;
+    }
+    
+    return env;
   }
 
   private parseTimeout(value?: string): number | null {

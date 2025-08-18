@@ -68,9 +68,12 @@ export class ConsoleLogger implements Logger {
       level,
       message,
       timestamp: new Date(),
-      context: this.context,
       data,
     };
+    
+    if (this.context) {
+      entry.context = this.context;
+    }
 
     this.writeLog(entry);
   }
@@ -165,11 +168,17 @@ export class StructuredLogger implements Logger {
       timestamp: new Date().toISOString(),
       level,
       message,
-      context: this.context,
-      data: this.verbose ? data : undefined,
       pid: process.pid,
       hostname: process.env.HOSTNAME || 'unknown',
     };
+    
+    if (this.context) {
+      entry.context = this.context;
+    }
+    
+    if (this.verbose && data !== undefined) {
+      entry.data = data;
+    }
 
     this.writeStructuredLog(entry);
   }

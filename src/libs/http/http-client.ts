@@ -1,4 +1,4 @@
-import type { HttpClient, HttpRequestConfig, HttpResponse, HttpError, StreamChunk } from './types.js';
+import type { HttpClient, HttpRequestConfig, HttpResponse, StreamChunk } from './types.js';
 
 export class FetchHttpClient implements HttpClient {
   async post(config: HttpRequestConfig): Promise<HttpResponse> {

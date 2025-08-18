@@ -40,12 +40,15 @@ export class DefaultErrorHandler implements ErrorHandler {
     const jsonrpcError: JSONRPCError = {
       code: this.mapErrorKindToCode(error.kind),
       message: error.message,
-      ...(error.details && { data: error.details }),
     };
+    
+    if (error.details) {
+      (jsonrpcError as any).data = error.details;
+    }
 
     return {
       jsonrpc: '2.0',
-      id,
+      id: id as string | number,
       error: jsonrpcError,
     };
   }

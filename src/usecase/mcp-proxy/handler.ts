@@ -1,5 +1,5 @@
 import type { JSONRPCMessage, JSONRPCRequest, JSONRPCResponse, JSONRPCError } from '@modelcontextprotocol/sdk/types.js';
-import type { McpProxy, ProxyConfig, RequestContext, ProxyError } from './types.js';
+import type { McpProxy, ProxyConfig, RequestContext } from './types.js';
 
 export class McpProxyHandler implements McpProxy {
   constructor(private config: ProxyConfig) {}
@@ -136,12 +136,15 @@ export class McpProxyHandler implements McpProxy {
     const error: JSONRPCError = {
       code,
       message,
-      ...(data && { data }),
     };
+    
+    if (data) {
+      (error as any).data = data;
+    }
 
     return {
       jsonrpc: '2.0',
-      id,
+      id: id as string | number,
       error,
     };
   }
