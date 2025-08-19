@@ -28,19 +28,18 @@
   },
   "keywords": [
     "mcp",
-    "google-cloud",
-    "cloud-run",
-    "proxy",
-    "adc"
+    "model context protocol",
+    "gcp",
+    "google cloud"
   ],
-  "author": "",
+  "author": "Yuku Kotani (y.kotani@dr-ubie.com)",
   "license": "MIT",
   "engines": {
     "node": ">=22.0.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.3",
-    "google-auth-library": "^9.15.0",
+    "google-auth-library": "^10.2.1",
     "gunshi": "^0.26.3",
     "pino": "^9.9.0"
   },
