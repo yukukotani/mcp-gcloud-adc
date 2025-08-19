@@ -72,7 +72,13 @@ describe("Error Scenarios", () => {
 
     it("IDトークンの有効期限切れ", async () => {
       const mockAuthClient = {
-        getIdToken: vi.fn(),
+        getIdToken: vi.fn().mockResolvedValue({
+          type: "error",
+          error: {
+            kind: "token-expired",
+            message: "Token has expired",
+          },
+        }),
         refreshToken: vi.fn().mockResolvedValue({
           type: "error",
           error: {
@@ -108,7 +114,13 @@ describe("Error Scenarios", () => {
 
     it("権限不足エラー", async () => {
       const mockAuthClient = {
-        getIdToken: vi.fn(),
+        getIdToken: vi.fn().mockResolvedValue({
+          type: "error",
+          error: {
+            kind: "insufficient-permissions",
+            message: "Insufficient permissions to access the resource",
+          },
+        }),
         refreshToken: vi.fn().mockResolvedValue({
           type: "error",
           error: {
@@ -161,7 +173,11 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn(),
+          getIdToken: vi.fn().mockResolvedValue({
+            type: "success",
+            token: "valid-token",
+            expiresAt: Date.now() + 3600000,
+          }),
           refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
@@ -202,7 +218,11 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn(),
+          getIdToken: vi.fn().mockResolvedValue({
+            type: "success",
+            token: "valid-token",
+            expiresAt: Date.now() + 3600000,
+          }),
           refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
@@ -246,7 +266,11 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn(),
+          getIdToken: vi.fn().mockResolvedValue({
+            type: "success",
+            token: "valid-token",
+            expiresAt: Date.now() + 3600000,
+          }),
           refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
@@ -288,7 +312,11 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn(),
+          getIdToken: vi.fn().mockResolvedValue({
+            type: "success",
+            token: "valid-token",
+            expiresAt: Date.now() + 3600000,
+          }),
           refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
@@ -331,7 +359,11 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn(),
+          getIdToken: vi.fn().mockResolvedValue({
+            type: "success",
+            token: "valid-token",
+            expiresAt: Date.now() + 3600000,
+          }),
           refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
@@ -360,7 +392,11 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn(),
+          getIdToken: vi.fn().mockResolvedValue({
+            type: "success",
+            token: "valid-token",
+            expiresAt: Date.now() + 3600000,
+          }),
           refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
@@ -394,7 +430,11 @@ describe("Error Scenarios", () => {
         timeout: 30000,
       };
 
-      await expect(startProxy(options)).rejects.toThrow();
+      const result = await startProxy(options);
+      expect(result.type).toBe("error");
+      if (result.type === "error") {
+        expect(result.error.message).toContain("URL must be HTTP or HTTPS");
+      }
     });
 
     it("Cloud Runサービスが存在しない", async () => {
@@ -404,17 +444,28 @@ describe("Error Scenarios", () => {
         timeout: 30000,
       };
 
-      await expect(startProxy(options)).rejects.toThrow();
+      const result = await startProxy(options);
+      expect(result.type).toBe("error");
+      if (result.type === "error") {
+        expect(result.error.message).toContain("URL must be HTTP or HTTPS");
+      }
     });
 
     it("極端に短いタイムアウト設定", async () => {
       const options: ProxyOptions = {
         url: "https://example.com/mcp",
-        timeout: 0, // 0ms - 無効なタイムアウト
+        timeout: 0, // 0ms - デフォルト値が使われる
       };
 
-      await expect(startProxy(options)).rejects.toThrow();
-    });
+      const proxyPromise = startProxy(options);
+      // 少し待ってからSIGINTを送信
+      setTimeout(() => {
+        process.emit("SIGINT", "SIGINT");
+      }, 100);
+
+      const result = await proxyPromise;
+      expect(result.type).toBe("success");
+    }, 15000);
   });
 
   describe("リソース不足シナリオ", () => {
@@ -440,7 +491,11 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn(),
+          getIdToken: vi.fn().mockResolvedValue({
+            type: "success",
+            token: "valid-token",
+            expiresAt: Date.now() + 3600000,
+          }),
           refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",
@@ -484,7 +539,11 @@ describe("Error Scenarios", () => {
         targetUrl: "https://example.com/mcp",
         timeout: 30000,
         authClient: {
-          getIdToken: vi.fn(),
+          getIdToken: vi.fn().mockResolvedValue({
+            type: "success",
+            token: "valid-token",
+            expiresAt: Date.now() + 3600000,
+          }),
           refreshToken: vi.fn().mockResolvedValue({
             type: "success",
             token: "valid-token",

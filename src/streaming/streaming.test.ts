@@ -3,8 +3,18 @@ import type {
   JSONRPCRequest,
 } from "@modelcontextprotocol/sdk/types.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createAuthClient } from "../libs/auth/google-auth.js";
 import { createHttpClient } from "../libs/http/http-client.js";
 import { createMcpProxy } from "../usecase/mcp-proxy/handler.js";
+
+// ファクトリー関数をモック
+vi.mock("../libs/http/http-client.js", () => ({
+  createHttpClient: vi.fn(),
+}));
+
+vi.mock("../libs/auth/google-auth.js", () => ({
+  createAuthClient: vi.fn(),
+}));
 
 // HTTPクライアントのモック
 const mockHttpClient = {
@@ -17,18 +27,13 @@ const mockAuthClient = {
   refreshToken: vi.fn(),
 };
 
-// ファクトリー関数をモック
-vi.mock("../libs/http/http-client.js", () => ({
-  createHttpClient: vi.fn(() => mockHttpClient),
-}));
-
-vi.mock("../libs/auth/google-auth.js", () => ({
-  createAuthClient: vi.fn(() => mockAuthClient),
-}));
-
 describe("Streaming Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // モックの設定
+    vi.mocked(createHttpClient).mockReturnValue(mockHttpClient);
+    vi.mocked(createAuthClient).mockReturnValue(mockAuthClient);
 
     // デフォルトの認証レスポンス
     mockAuthClient.getIdToken.mockResolvedValue({
@@ -289,17 +294,25 @@ describe("Streaming Tests", () => {
       });
 
       const httpClient = createHttpClient();
+      const chunks: { type: string; error?: unknown }[] = [];
 
-      await expect(async () => {
-        for await (const _chunk of httpClient.postStream({
-          url: "https://example.com/stream",
-          headers: {},
-          body: { method: "timeout-test" },
-          timeout: 1000, // 1秒のタイムアウト
-        })) {
-          // チャンクを処理
-        }
-      }).rejects.toThrow("Request timed out");
+      for await (const chunk of httpClient.postStream({
+        url: "https://example.com/stream",
+        headers: {},
+        body: { method: "timeout-test" },
+        timeout: 1000, // 1秒のタイムアウト
+      })) {
+        chunks.push(chunk);
+      }
+
+      expect(chunks).toHaveLength(1);
+      expect(chunks[0]).toMatchObject({
+        type: "error",
+        error: {
+          kind: "timeout",
+          message: "Request timed out",
+        },
+      });
     });
 
     it("短いタイムアウトでも最初のチャンクは受信する", async () => {

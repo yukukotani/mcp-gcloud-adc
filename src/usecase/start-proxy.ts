@@ -1,9 +1,9 @@
+import packageInfo from "../../package.json" with { type: "json" };
 import { createAuthClient } from "../libs/auth/google-auth.js";
 import { createHttpClient } from "../libs/http/http-client.js";
 import { setupSimpleMcpServer } from "../presentation/mcp-server-simple.js";
 import { createMcpProxy } from "./mcp-proxy/handler.js";
 import type { ProxyOptions } from "./mcp-proxy/types.js";
-import packageInfo from "../../package.json" with { type: "json" };
 
 type StartProxyResult =
   | { type: "success" }

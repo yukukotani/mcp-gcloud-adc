@@ -270,11 +270,21 @@ describe("HttpClient", () => {
         timeout: 5000,
       };
 
-      await expect(async () => {
-        for await (const _chunk of httpClient.postStream(config)) {
-          // この部分は実行されない
-        }
-      }).rejects.toThrow("HTTP 500");
+      const chunks: { type: string; error?: unknown }[] = [];
+
+      for await (const chunk of httpClient.postStream(config)) {
+        chunks.push(chunk);
+      }
+
+      expect(chunks).toHaveLength(1);
+      expect(chunks[0]).toMatchObject({
+        type: "error",
+        error: {
+          kind: "http-error",
+          message: expect.stringContaining("HTTP 500"),
+          status: 500,
+        },
+      });
     });
 
     it("ストリームタイムアウトを処理する", async () => {
@@ -289,11 +299,20 @@ describe("HttpClient", () => {
         timeout: 1000,
       };
 
-      await expect(async () => {
-        for await (const _chunk of httpClient.postStream(config)) {
-          // この部分は実行されない
-        }
-      }).rejects.toThrow("Request timed out after 1000ms");
+      const chunks: { type: string; error?: unknown }[] = [];
+
+      for await (const chunk of httpClient.postStream(config)) {
+        chunks.push(chunk);
+      }
+
+      expect(chunks).toHaveLength(1);
+      expect(chunks[0]).toMatchObject({
+        type: "error",
+        error: {
+          kind: "timeout",
+          message: "Request timed out after 1000ms",
+        },
+      });
     });
   });
 });

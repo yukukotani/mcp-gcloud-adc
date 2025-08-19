@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { cli } from "gunshi";
-import { startProxy } from "../usecase/start-proxy.js";
 import packageInfo from "../../package.json" with { type: "json" };
+import { startProxy } from "../usecase/start-proxy.js";
 
 const proxyCommand = {
   name: "mcp-gcloud-proxy",
