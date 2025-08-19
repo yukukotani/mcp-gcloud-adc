@@ -1,22 +1,22 @@
 #!/usr/bin/env node
-import { cli } from "gunshi";
+import { cli, define } from "gunshi";
 import packageInfo from "../../package.json" with { type: "json" };
 import { logger } from "../libs/logging/logger.js";
 import { startProxy } from "../usecase/start-proxy.js";
 
-const proxyCommand = {
+const proxyCommand = define({
   name: "mcp-gcloud-adc",
   description: "Google Cloud Run MCP Server Proxy with ADC authentication",
   args: {
     url: {
-      type: "string" as const,
-      short: "u" as const,
-      required: true as const,
+      type: "string",
+      short: "u",
+      required: true,
       description: "Cloud Run service URL (HTTP or HTTPS)",
     },
     timeout: {
-      type: "number" as const,
-      short: "t" as const,
+      type: "number",
+      short: "t",
       default: 120000,
       description: "HTTP request timeout in milliseconds",
     },
@@ -29,11 +29,13 @@ $ mcp-gcloud-adc --url http://localhost:3000
 
 # With custom timeout
 $ mcp-gcloud-adc -u https://my-service-abc123-uc.a.run.app -t 60000`,
-  run: async (ctx: { values: { url: string; timeout: number } }) => {
+  run: async (ctx) => {
+    console.log(ctx.values.url, ctx.values.timeout);
+
     const { url, timeout } = ctx.values;
     await executeProxyCommand({ url, timeout });
   },
-} as const;
+});
 
 export type CliOptions = {
   url: string;
