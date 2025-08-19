@@ -117,11 +117,8 @@ bun run biome check . --fix
 ### Build
 
 ```bash
-# Build with tsdown (fast, optimized)
+# Build with tsdown
 bun run build
-
-# Build with TypeScript compiler (fallback)
-bun run build:tsc
 
 # Watch mode for development
 bun run dev
