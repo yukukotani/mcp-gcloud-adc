@@ -1,6 +1,7 @@
 import packageInfo from "../../package.json" with { type: "json" };
 import { createAuthClient } from "../libs/auth/google-auth.js";
 import { createHttpClient } from "../libs/http/http-client.js";
+import { logger } from "../libs/logging/logger.js";
 import { setupSimpleMcpServer } from "../presentation/mcp-server-simple.js";
 import { createMcpProxy } from "./mcp-proxy/handler.js";
 import type { ProxyOptions } from "./mcp-proxy/types.js";
@@ -12,8 +13,14 @@ type StartProxyResult =
 export async function startProxy(
   options: ProxyOptions,
 ): Promise<StartProxyResult> {
+  logger.info(
+    { url: options.url, timeout: options.timeout },
+    "Starting proxy initialization",
+  );
+
   // URLの検証
   if (!options.url) {
+    logger.warn("URL validation failed: URL is required");
     return {
       type: "error",
       error: { kind: "validation-error", message: "URL is required" },
@@ -24,6 +31,10 @@ export async function startProxy(
     !options.url.startsWith("https://") &&
     !options.url.startsWith("http://")
   ) {
+    logger.warn(
+      { url: options.url },
+      "URL validation failed: must be HTTP or HTTPS",
+    );
     return {
       type: "error",
       error: { kind: "validation-error", message: "URL must be HTTP or HTTPS" },
@@ -32,12 +43,15 @@ export async function startProxy(
 
   try {
     // 認証クライアントの初期化
+    logger.debug("Initializing auth client");
     const authClient = createAuthClient({});
 
     // HTTPクライアントの初期化
+    logger.debug("Initializing HTTP client");
     const httpClient = createHttpClient();
 
     // プロキシハンドラーの作成
+    logger.debug("Creating MCP proxy handler");
     const proxy = createMcpProxy({
       targetUrl: options.url,
       timeout: options.timeout,
@@ -46,6 +60,7 @@ export async function startProxy(
     });
 
     // MCPサーバーのセットアップと接続
+    logger.info("Setting up MCP server");
     await setupSimpleMcpServer({
       name: "mcp-gcloud-adc",
       version: packageInfo.version,
@@ -55,6 +70,8 @@ export async function startProxy(
     // グレースフルシャットダウンの設定
     setupGracefulShutdown();
 
+    logger.info("Proxy started successfully, waiting for requests");
+
     // プロセスが終了するまで待機
     await new Promise((resolve) => {
       process.on("SIGINT", resolve);
@@ -63,6 +80,10 @@ export async function startProxy(
 
     return { type: "success" };
   } catch (error) {
+    logger.error(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      "Failed to start proxy",
+    );
     return {
       type: "error",
       error: {
@@ -76,17 +97,20 @@ export async function startProxy(
 
 function setupGracefulShutdown(): void {
   const shutdown = () => {
+    logger.info("Graceful shutdown initiated");
     process.exit(0);
   };
 
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
 
-  process.on("uncaughtException", () => {
+  process.on("uncaughtException", (error) => {
+    logger.error({ error: error.message }, "Uncaught exception");
     process.exit(1);
   });
 
-  process.on("unhandledRejection", () => {
+  process.on("unhandledRejection", (reason) => {
+    logger.error({ reason }, "Unhandled promise rejection");
     process.exit(1);
   });
 }

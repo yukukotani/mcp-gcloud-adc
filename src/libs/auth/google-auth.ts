@@ -1,4 +1,5 @@
 import { GoogleAuth } from "google-auth-library";
+import { logger } from "../logging/logger.js";
 import type {
   AuthClient,
   AuthConfig,
@@ -60,9 +61,11 @@ const fetchNewToken = async (
   audience: string,
 ): Promise<GetIdTokenResult> => {
   try {
+    logger.debug({ audience }, "Fetching new ID token from Google Auth");
     const client = await state.googleAuth.getClient();
 
     if (!client) {
+      logger.warn("No Google Auth client available");
       return {
         type: "error",
         error: {
@@ -74,6 +77,7 @@ const fetchNewToken = async (
     }
 
     if (!("fetchIdToken" in client)) {
+      logger.warn("Google Auth client does not support ID token generation");
       return {
         type: "error",
         error: {
@@ -89,6 +93,7 @@ const fetchNewToken = async (
     ).fetchIdToken(audience);
 
     if (!idToken || typeof idToken !== "string") {
+      logger.warn("Failed to retrieve valid ID token");
       return {
         type: "error",
         error: {
@@ -105,12 +110,24 @@ const fetchNewToken = async (
       expiresAt,
     };
 
+    logger.debug(
+      { audience, expiresAt },
+      "Successfully fetched and cached new ID token",
+    );
+
     return {
       type: "success",
       token: idToken,
       expiresAt,
     };
   } catch (error) {
+    logger.error(
+      {
+        audience,
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      "Failed to fetch ID token",
+    );
     return {
       type: "error",
       error: {
@@ -125,7 +142,10 @@ const getIdToken = async (
   state: GoogleAuthState,
   audience: string,
 ): Promise<GetIdTokenResult> => {
+  logger.debug({ audience }, "Getting ID token");
+
   if (!isValidAudience(audience)) {
+    logger.warn({ audience }, "Invalid audience provided");
     return {
       type: "error",
       error: {
@@ -137,6 +157,7 @@ const getIdToken = async (
 
   const cached = getCachedToken(state, audience);
   if (cached && isTokenValid(cached.expiresAt)) {
+    logger.debug({ audience }, "Using cached token");
     return {
       type: "success",
       token: cached.token,
@@ -144,6 +165,7 @@ const getIdToken = async (
     };
   }
 
+  logger.debug({ audience }, "Fetching new token");
   return fetchNewToken(state, audience);
 };
 
@@ -151,6 +173,7 @@ const refreshToken = async (
   state: GoogleAuthState,
   audience: string,
 ): Promise<GetIdTokenResult> => {
+  logger.debug({ audience }, "Refreshing token");
   delete state.tokenCache[audience];
   return getIdToken(state, audience);
 };
@@ -179,6 +202,7 @@ const createGoogleAuthState = (config: AuthConfig = {}): GoogleAuthState => {
 };
 
 export function createAuthClient(config: AuthConfig = {}): AuthClient {
+  logger.debug({ config }, "Creating Google Auth client");
   const state = createGoogleAuthState(config);
 
   return {

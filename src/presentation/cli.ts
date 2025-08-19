@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { cli } from "gunshi";
 import packageInfo from "../../package.json" with { type: "json" };
+import { logger } from "../libs/logging/logger.js";
 import { startProxy } from "../usecase/start-proxy.js";
 
 const proxyCommand = {
@@ -62,6 +63,11 @@ export function validateCliOptions(options: CliOptions): void {
 }
 
 export async function executeProxyCommand(options: CliOptions): Promise<void> {
+  logger.info(
+    { url: options.url, timeout: options.timeout },
+    "Executing proxy command",
+  );
+
   validateCliOptions(options);
 
   const result = await startProxy({
@@ -70,6 +76,7 @@ export async function executeProxyCommand(options: CliOptions): Promise<void> {
   });
 
   if (result.type === "error") {
+    logger.error({ error: result.error }, "Failed to start proxy from CLI");
     process.stderr.write(`Failed to start proxy: ${result.error.message}\n`);
     process.exit(1);
   }

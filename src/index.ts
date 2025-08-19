@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { logger } from "./libs/logging/logger.js";
 import { runCli } from "./presentation/cli.js";
 import { startProxy } from "./usecase/start-proxy.js";
 
@@ -14,13 +15,19 @@ async function main(): Promise<void> {
         process.argv.length === 4 && process.argv[3]
           ? process.argv[3]
           : "https://httpbin.org/post";
+      logger.info({ url, mode: "stdio" }, "Starting MCP server in stdio mode");
       await startProxy({ url, timeout: 120000 });
       return;
     }
 
     // 通常のCLIモード
+    logger.info({ mode: "cli" }, "Starting MCP proxy in CLI mode");
     await runCli();
   } catch (error) {
+    logger.error(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      "Fatal error occurred",
+    );
     process.stderr.write(
       `Fatal error: ${error instanceof Error ? error.message : "Unknown error"}\n`,
     );

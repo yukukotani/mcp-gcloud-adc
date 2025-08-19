@@ -3,6 +3,7 @@ import type {
   JSONRPCRequest,
   JSONRPCResponse,
 } from "@modelcontextprotocol/sdk/types.js";
+import { logger } from "../../libs/logging/logger.js";
 import {
   createAuthErrorResponse,
   createErrorResponseFromHttpError,
@@ -18,6 +19,11 @@ const handleRequest = async (
   config: ProxyConfig,
   request: JSONRPCRequest,
 ): Promise<JSONRPCResponse> => {
+  logger.debug(
+    { method: request.method, id: request.id },
+    "Handling JSONRPC request",
+  );
+
   try {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -27,6 +33,10 @@ const handleRequest = async (
     const tokenResult = await config.authClient.getIdToken(config.targetUrl);
 
     if (tokenResult.type === "error") {
+      logger.warn(
+        { method: request.method, id: request.id, error: tokenResult.error },
+        "Authentication failed for request",
+      );
       return createAuthErrorResponse(
         request.id,
         tokenResult.error.message,
@@ -44,6 +54,10 @@ const handleRequest = async (
     });
 
     if (httpResponse.type === "error") {
+      logger.warn(
+        { method: request.method, id: request.id, error: httpResponse.error },
+        "HTTP request failed",
+      );
       return createErrorResponseFromHttpError(request.id, httpResponse.error);
     }
 
@@ -51,11 +65,27 @@ const handleRequest = async (
 
     const validatedResponse = validateJSONRPCResponse(responseData);
     if (!validatedResponse) {
+      logger.warn(
+        { method: request.method, id: request.id },
+        "Invalid JSONRPC response received",
+      );
       return createInvalidResponseErrorResponse(request.id, responseData);
     }
 
+    logger.debug(
+      { method: request.method, id: request.id },
+      "Successfully handled JSONRPC request",
+    );
     return validatedResponse;
   } catch (error) {
+    logger.error(
+      {
+        method: request.method,
+        id: request.id,
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      "Unexpected error handling request",
+    );
     return createInternalErrorResponse(request.id, error);
   }
 };
@@ -69,6 +99,9 @@ const handleMessage = async (
   }
 
   if (isJSONRPCNotification(message)) {
+    const method = "method" in message ? message.method : "unknown";
+    logger.debug({ method }, "Handling JSONRPC notification");
+
     try {
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
@@ -78,6 +111,10 @@ const handleMessage = async (
       const tokenResult = await config.authClient.getIdToken(config.targetUrl);
 
       if (tokenResult.type === "error") {
+        logger.warn(
+          { method, error: tokenResult.error },
+          "Authentication failed for notification",
+        );
         return message;
       }
 
@@ -90,16 +127,30 @@ const handleMessage = async (
         timeout: config.timeout,
       });
 
+      logger.debug({ method }, "Successfully handled JSONRPC notification");
       return message;
-    } catch (_error) {
+    } catch (error) {
+      logger.warn(
+        {
+          method,
+          error: error instanceof Error ? error.message : "Unknown error",
+        },
+        "Error handling notification",
+      );
       return message;
     }
   }
 
+  logger.debug("Received unknown message type, passing through");
   return message;
 };
 
 export function createMcpProxy(config: ProxyConfig): McpProxy {
+  logger.debug(
+    { targetUrl: config.targetUrl, timeout: config.timeout },
+    "Creating MCP proxy",
+  );
+
   return {
     handleRequest: (request: JSONRPCRequest) => handleRequest(config, request),
     handleMessage: (message: JSONRPCMessage) => handleMessage(config, message),
