@@ -4,9 +4,13 @@
   "type": "module",
   "description": "Google Cloud Run MCP Server Proxy with ADC authentication",
   "main": "dist/index.js",
-  "bin": {
-    "mcp-gcloud-adc": "./dist/index.js"
-  },
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": "dist/index.js",
+  "files": [
+    "dist",
+    "package.json"
+  ],
   "scripts": {
     "build": "tsdown",
     "dev": "tsx src/index.ts",
