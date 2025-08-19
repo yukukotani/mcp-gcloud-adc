@@ -1,63 +1,63 @@
 # mcp-gcloud-adc
 
-Google Cloud Application Default Credentials (ADC) を使用して MCP サーバーにアクセスするためのプロキシツール
+A proxy tool for accessing MCP servers using Google Cloud Application Default Credentials (ADC)
 
-## 概要
+## Overview
 
-このツールは Google Cloud Application Default Credentials (ADC) を使用して認証を行い、Model Context Protocol (MCP) サーバーへのリクエストをプロキシします。特に Cloud Run などの Google Cloud サービス上で動作する MCP サーバーへのアクセスに便利です。
+This tool authenticates using Google Cloud Application Default Credentials (ADC) and proxies requests to Model Context Protocol (MCP) servers. It's particularly useful for accessing MCP servers running on Google Cloud services like Cloud Run.
 
-## 主な機能
+## Features
 
-- **ADC 認証**: Google Cloud Application Default Credentials を自動的に使用
-- **MCP プロキシ**: JSON-RPC 形式の MCP リクエストを透過的にプロキシ
-- **エラーハンドリング**: 認証エラー、ネットワークエラー、HTTP エラーを適切に処理
-- **CLI インターフェース**: シンプルなコマンドライン操作
+- **ADC Authentication**: Automatically uses Google Cloud Application Default Credentials
+- **MCP Proxy**: Transparently proxies JSON-RPC formatted MCP requests
+- **Error Handling**: Properly handles authentication errors, network errors, and HTTP errors
+- **CLI Interface**: Simple command-line operation
 
-## インストール
+## Installation
 
 ```bash
 npm install -g mcp-gcloud-adc
 ```
 
-## 使い方
+## Usage
 
-### 前提条件
+### Prerequisites
 
-Google Cloud の認証情報を設定する必要があります。以下のいずれかの方法で設定してください：
+You need to set up Google Cloud authentication credentials. Use one of the following methods:
 
 ```bash
-# 方法1: gcloud CLI を使用したユーザー認証
+# Method 1: User authentication using gcloud CLI
 gcloud auth application-default login
 
-# 方法2: サービスアカウントキーを使用
+# Method 2: Using service account key
 export GOOGLE_APPLICATION_CREDENTIALS="path/to/service-account.json"
 ```
 
-### 基本的な使い方
+### Basic Usage
 
 ```bash
-# MCP プロキシを起動
+# Start MCP proxy
 mcp-gcloud-adc --url https://your-cloud-run-service.run.app --timeout 30000
 ```
 
-### パラメータ
+### Parameters
 
-- `--url`: ターゲット MCP サーバーの URL（必須）
-- `--timeout`: リクエストタイムアウト（ミリ秒）（デフォルト: 30000）
+- `--url`: URL of the target MCP server (required)
+- `--timeout`: Request timeout in milliseconds (default: 30000)
 
-### 使用例
+### Examples
 
 ```bash
-# Cloud Run サービスへのプロキシ
+# Proxy to Cloud Run service
 mcp-gcloud-adc --url https://mcp-server-abcd1234-uw.a.run.app --timeout 10000
 
-# ローカル HTTP サーバーへのプロキシ（認証なし）
+# Proxy to local HTTP server (no authentication)
 mcp-gcloud-adc --url http://localhost:3000 --timeout 5000
 ```
 
-## Claude Desktop での設定
+## Claude Desktop Configuration
 
-Claude Desktop の設定ファイル（`claude_desktop_config.json`）に以下のように追加します：
+Add the following to your Claude Desktop configuration file (`claude_desktop_config.json`):
 
 ```json
 {
@@ -74,49 +74,49 @@ Claude Desktop の設定ファイル（`claude_desktop_config.json`）に以下�
 }
 ```
 
-## 認証について
+## Authentication
 
-このツールは Google Cloud Application Default Credentials (ADC) を使用します。ADC は以下の順序で認証情報を検索します：
+This tool uses Google Cloud Application Default Credentials (ADC). ADC searches for credentials in the following order:
 
-1. `GOOGLE_APPLICATION_CREDENTIALS` 環境変数で指定されたサービスアカウントキー
-2. gcloud CLI で設定されたユーザー認証情報
-3. Google Cloud 環境（Compute Engine、Cloud Run など）のメタデータサーバー
+1. Service account key specified by the `GOOGLE_APPLICATION_CREDENTIALS` environment variable
+2. User credentials set by the gcloud CLI
+3. Metadata server in Google Cloud environments (Compute Engine, Cloud Run, etc.)
 
-詳細については [Google Cloud のドキュメント](https://cloud.google.com/docs/authentication/application-default-credentials) を参照してください。
+For more details, see the [Google Cloud documentation](https://cloud.google.com/docs/authentication/application-default-credentials).
 
-## エラーハンドリング
+## Error Handling
 
-以下のエラーが適切に処理されます：
+The following errors are properly handled:
 
-- **認証エラー**: ADC 認証情報が見つからない、または無効なトークン
-- **ネットワークエラー**: 接続失敗、タイムアウト
-- **HTTP エラー**: 4xx、5xx ステータスコード
-- **JSON-RPC エラー**: 無効なリクエスト/レスポンス形式
+- **Authentication Errors**: ADC credentials not found or invalid tokens
+- **Network Errors**: Connection failures, timeouts
+- **HTTP Errors**: 4xx, 5xx status codes
+- **JSON-RPC Errors**: Invalid request/response formats
 
-## トラブルシューティング
+## Troubleshooting
 
-### 認証エラーが発生する場合
+### Authentication Errors
 
 ```bash
-# ADC が正しく設定されているか確認
+# Verify ADC is configured correctly
 gcloud auth application-default print-access-token
 
-# 再度ログイン
+# Re-authenticate
 gcloud auth application-default login
 ```
 
-### タイムアウトが発生する場合
+### Timeout Issues
 
-`--timeout` パラメータの値を増やしてください：
+Increase the `--timeout` parameter value:
 
 ```bash
 mcp-gcloud-adc --url https://your-service.run.app --timeout 60000
 ```
 
-## ライセンス
+## License
 
 MIT License
 
-## 貢献
+## Contributing
 
-Issue や Pull Request を歓迎します。[GitHub リポジトリ](https://github.com/yukukotani/mcp-gcloud-adc) をご覧ください。
+Issues and Pull Requests are welcome! Visit our [GitHub repository](https://github.com/yukukotani/mcp-gcloud-adc).
