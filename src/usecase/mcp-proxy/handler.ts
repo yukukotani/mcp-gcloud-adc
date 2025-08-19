@@ -19,26 +19,22 @@ const handleRequest = async (
   request: JSONRPCRequest,
 ): Promise<JSONRPCResponse> => {
   try {
-    // HTTP URL（主にテスト用）の場合は認証をスキップ
-    const isHttpUrl = config.targetUrl.startsWith("http://");
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Accept: "application/json, text/event-stream",
     };
 
-    if (!isHttpUrl) {
-      const tokenResult = await config.authClient.getIdToken(config.targetUrl);
+    const tokenResult = await config.authClient.getIdToken(config.targetUrl);
 
-      if (tokenResult.type === "error") {
-        return createAuthErrorResponse(
-          request.id,
-          tokenResult.error.message,
-          tokenResult.error,
-        );
-      }
-
-      headers.Authorization = `Bearer ${tokenResult.token}`;
+    if (tokenResult.type === "error") {
+      return createAuthErrorResponse(
+        request.id,
+        tokenResult.error.message,
+        tokenResult.error,
+      );
     }
+
+    headers.Authorization = `Bearer ${tokenResult.token}`;
 
     const httpResponse = await config.httpClient.post({
       url: config.targetUrl,
@@ -74,24 +70,18 @@ const handleMessage = async (
 
   if (isJSONRPCNotification(message)) {
     try {
-      // HTTP URL（主にテスト用）の場合は認証をスキップ
-      const isHttpUrl = config.targetUrl.startsWith("http://");
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
         Accept: "application/json, text/event-stream",
       };
 
-      if (!isHttpUrl) {
-        const tokenResult = await config.authClient.getIdToken(
-          config.targetUrl,
-        );
+      const tokenResult = await config.authClient.getIdToken(config.targetUrl);
 
-        if (tokenResult.type === "error") {
-          return message;
-        }
-
-        headers.Authorization = `Bearer ${tokenResult.token}`;
+      if (tokenResult.type === "error") {
+        return message;
       }
+
+      headers.Authorization = `Bearer ${tokenResult.token}`;
 
       await config.httpClient.post({
         url: config.targetUrl,
