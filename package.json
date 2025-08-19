@@ -1,6 +1,6 @@
 {
   "name": "mcp-gcloud-adc",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "description": "Google Cloud Run MCP Server Proxy with ADC authentication",
   "main": "dist/index.js",
