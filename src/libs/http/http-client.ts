@@ -1,3 +1,4 @@
+import { logger } from "../logging/logger.js";
 import type {
   HttpClient,
   HttpRequestConfig,
@@ -24,6 +25,11 @@ const safeReadResponseText = async (response: Response): Promise<string> => {
 const post = async (config: HttpRequestConfig): Promise<HttpResponse> => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), config.timeout);
+
+  logger.info(
+    { url: config.url, headers: Object.keys(config.headers) },
+    "Sending HTTP request",
+  );
 
   try {
     const response = await fetch(config.url, {
@@ -136,6 +142,11 @@ async function* postStream(
 ): AsyncIterable<StreamChunk> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), config.timeout);
+
+  logger.info(
+    { url: config.url, headers: Object.keys(config.headers) },
+    "Sending HTTP stream request",
+  );
 
   try {
     const response = await fetch(config.url, {
