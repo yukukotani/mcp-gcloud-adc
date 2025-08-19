@@ -5,7 +5,7 @@
   "description": "Google Cloud Run MCP Server Proxy with ADC authentication",
   "main": "dist/index.js",
   "bin": {
-    "mcp-gcloud-proxy": "./dist/index.js"
+    "mcp-gcloud-adc": "./dist/index.js"
   },
   "scripts": {
     "build": "tsdown",
@@ -24,7 +24,8 @@
     "fix:biome": "biome check --write .",
     "fix:knip": "knip --fix --allow-remove-files",
     "fix": "concurrently 'npm:fix:*'",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "prepublishOnly": "bun run build"
   },
   "keywords": [
     "mcp",

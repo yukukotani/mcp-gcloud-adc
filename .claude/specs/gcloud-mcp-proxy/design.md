@@ -47,7 +47,7 @@ import type { CommandContext } from 'gunshi';
 
 // gunshiで型安全なコマンド定義
 const proxyCommand = define({
-  name: 'mcp-gcloud-proxy',
+  name: 'mcp-gcloud-adc',
   description: 'Google Cloud Run MCP Server Proxy with ADC authentication',
   args: {
     url: {
@@ -114,7 +114,7 @@ async function createStdioServer(config: StdioServerConfig): Promise<Server> {
   // stdioトランスポートの設定
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  
+
   return server;
 }
 ```
@@ -300,7 +300,7 @@ import type {
 } from '@modelcontextprotocol/sdk/types.js';
 
 // プロキシで扱うメッセージ型
-type ProxyableRequest = 
+type ProxyableRequest =
   | InitializeRequest
   | CallToolRequest
   | ListToolsRequest
