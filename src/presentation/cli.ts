@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { cli } from "gunshi";
 import { startProxy } from "../usecase/start-proxy.js";
+import packageInfo from "../../package.json" with { type: "json" };
 
 const proxyCommand = {
   name: "mcp-gcloud-proxy",
@@ -77,7 +78,7 @@ export async function executeProxyCommand(options: CliOptions): Promise<void> {
 export async function runCli(): Promise<void> {
   await cli(process.argv.slice(2), proxyCommand, {
     name: "mcp-gcloud-proxy",
-    version: "1.0.0",
+    version: packageInfo.version,
     description: "Google Cloud Run MCP Server Proxy with ADC authentication",
     renderHeader: async () => "",
   });

@@ -3,6 +3,7 @@ import { createHttpClient } from "../libs/http/http-client.js";
 import { setupSimpleMcpServer } from "../presentation/mcp-server-simple.js";
 import { createMcpProxy } from "./mcp-proxy/handler.js";
 import type { ProxyOptions } from "./mcp-proxy/types.js";
+import packageInfo from "../../package.json" with { type: "json" };
 
 type StartProxyResult =
   | { type: "success" }
@@ -47,7 +48,7 @@ export async function startProxy(
     // MCPサーバーのセットアップと接続
     await setupSimpleMcpServer({
       name: "mcp-gcloud-adc",
-      version: "1.0.0",
+      version: packageInfo.version,
       proxy,
     });
 

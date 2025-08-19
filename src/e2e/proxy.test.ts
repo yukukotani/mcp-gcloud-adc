@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProxyOptions } from "../usecase/mcp-proxy/types.js";
 import { startProxy } from "../usecase/start-proxy.js";
+import packageInfo from "../../package.json" with { type: "json" };
 
 // モジュールのモック
 vi.mock("../libs/auth/google-auth.js", () => ({
@@ -190,7 +191,7 @@ describe("Proxy E2E Tests", () => {
       expect(setupSimpleMcpServer).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "mcp-gcloud-adc",
-          version: "1.0.0",
+          version: packageInfo.version,
         }),
       );
     }, 10000);
