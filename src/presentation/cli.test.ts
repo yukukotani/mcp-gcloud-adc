@@ -1,15 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { startProxy } from "../usecase/start-proxy.js";
+import * as startProxyModule from "../usecase/start-proxy.js";
 import {
   type CliOptions,
   executeProxyCommand,
   validateCliOptions,
 } from "./cli.js";
 
-// モジュールのモック
-vi.mock("../usecase/start-proxy.js", () => ({
-  startProxy: vi.fn(),
-}));
+// モック関数
+const mockStartProxy = vi.fn();
 
 describe("CLI", () => {
   let mockStderr: ReturnType<typeof vi.spyOn>;
@@ -24,6 +22,7 @@ describe("CLI", () => {
       .spyOn(process, "exit")
       // biome-ignore lint/suspicious/noExplicitAny: Mock型の制約により必要
       .mockImplementation(() => undefined as never) as any;
+    vi.spyOn(startProxyModule, "startProxy").mockImplementation(mockStartProxy);
     vi.clearAllMocks();
   });
 
@@ -91,11 +90,11 @@ describe("CLI", () => {
         url: "https://example.com",
         timeout: 60000,
       };
-      vi.mocked(startProxy).mockResolvedValue({ type: "success" });
+      mockStartProxy.mockResolvedValue({ type: "success" });
 
       await executeProxyCommand(options);
 
-      expect(vi.mocked(startProxy)).toHaveBeenCalledWith(options);
+      expect(mockStartProxy).toHaveBeenCalledWith(options);
     });
 
     it("ログ出力を適切に処理する", async () => {
@@ -103,12 +102,12 @@ describe("CLI", () => {
         url: "https://example.com",
         timeout: 120000,
       };
-      vi.mocked(startProxy).mockResolvedValue({ type: "success" });
+      mockStartProxy.mockResolvedValue({ type: "success" });
 
       await executeProxyCommand(options);
 
       // プロキシが正しいオプションで呼び出されることを確認
-      expect(vi.mocked(startProxy)).toHaveBeenCalledWith({
+      expect(mockStartProxy).toHaveBeenCalledWith({
         url: "https://example.com",
         timeout: 120000,
       });
@@ -119,7 +118,7 @@ describe("CLI", () => {
         url: "https://example.com",
         timeout: 120000,
       };
-      vi.mocked(startProxy).mockResolvedValue({
+      mockStartProxy.mockResolvedValue({
         type: "error",
         error: { kind: "connection-error", message: "Connection failed" },
       });
@@ -137,7 +136,7 @@ describe("CLI", () => {
         url: "https://example.com",
         timeout: 120000,
       };
-      vi.mocked(startProxy).mockResolvedValue({
+      mockStartProxy.mockResolvedValue({
         type: "error",
         error: { kind: "unknown-error", message: "Unknown error" },
       });

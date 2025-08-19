@@ -3,38 +3,6 @@ import packageInfo from "../../package.json" with { type: "json" };
 import type { ProxyOptions } from "../usecase/mcp-proxy/types.js";
 import { startProxy } from "../usecase/start-proxy.js";
 
-// モジュールのモック
-vi.mock("../libs/auth/google-auth.js", () => ({
-  createAuthClient: () => ({
-    getIdToken: vi.fn().mockResolvedValue({
-      type: "success",
-      token: "mock-id-token",
-      expiresAt: Date.now() + 3600000,
-    }),
-  }),
-}));
-
-vi.mock("../libs/http/http-client.js", () => ({
-  createHttpClient: () => ({
-    post: vi.fn().mockResolvedValue({
-      type: "success",
-      data: { result: "success" },
-      status: 200,
-    }),
-    postStream: vi.fn().mockImplementation(async function* () {
-      yield { data: '{"result": "stream1"}', isLast: false };
-      yield { data: '{"result": "stream2"}', isLast: true };
-    }),
-  }),
-}));
-
-vi.mock("../presentation/mcp-server-simple.js", () => ({
-  setupSimpleMcpServer: vi.fn().mockImplementation(async () => {
-    // MCPサーバーの起動をシミュレートするが、実際には起動しない
-    return Promise.resolve();
-  }),
-}));
-
 // プロセスのイベントリスナーをモック
 vi.spyOn(process, "on").mockImplementation(
   (event: string | symbol, listener: (...args: unknown[]) => void) => {

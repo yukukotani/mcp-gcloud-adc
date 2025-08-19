@@ -18,7 +18,6 @@
     }
   },
   "files": {
-    "includes": ["src/**/*"],
-    "ignoreUnknown": true
+    "includes": ["src/**/*"]
   }
 }

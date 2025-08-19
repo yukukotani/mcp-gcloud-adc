@@ -16,13 +16,13 @@ describe("McpProxy", () => {
 
   beforeEach(() => {
     mockAuthClient = {
-      getIdToken: vi.fn(),
-      refreshToken: vi.fn(),
+      getIdToken: vi.fn() as any,
+      refreshToken: vi.fn() as any,
     };
 
     mockHttpClient = {
-      post: vi.fn(),
-      postStream: vi.fn(),
+      post: vi.fn() as any,
+      postStream: vi.fn() as any,
     };
 
     config = {
@@ -50,13 +50,13 @@ describe("McpProxy", () => {
         result: { tools: [] },
       };
 
-      vi.mocked(mockAuthClient.getIdToken).mockResolvedValue({
+      mockAuthClient.getIdToken.mockResolvedValue({
         type: "success",
         token: "mock-token",
         expiresAt: new Date(Date.now() + 3600000),
       });
 
-      vi.mocked(mockHttpClient.post).mockResolvedValue({
+      mockHttpClient.post.mockResolvedValue({
         type: "success",
         data: expectedResponse,
         status: 200,
@@ -89,7 +89,7 @@ describe("McpProxy", () => {
         params: {},
       };
 
-      vi.mocked(mockAuthClient.getIdToken).mockResolvedValue({
+      mockAuthClient.getIdToken.mockResolvedValue({
         type: "error",
         error: {
           kind: "no-credentials",
@@ -121,13 +121,13 @@ describe("McpProxy", () => {
         params: {},
       };
 
-      vi.mocked(mockAuthClient.getIdToken).mockResolvedValue({
+      mockAuthClient.getIdToken.mockResolvedValue({
         type: "success",
         token: "mock-token",
         expiresAt: new Date(Date.now() + 3600000),
       });
 
-      vi.mocked(mockHttpClient.post).mockResolvedValue({
+      mockHttpClient.post.mockResolvedValue({
         type: "error",
         error: {
           kind: "http-error",
@@ -162,13 +162,13 @@ describe("McpProxy", () => {
         params: {},
       };
 
-      vi.mocked(mockAuthClient.getIdToken).mockResolvedValue({
+      mockAuthClient.getIdToken.mockResolvedValue({
         type: "success",
         token: "mock-token",
         expiresAt: new Date(Date.now() + 3600000),
       });
 
-      vi.mocked(mockHttpClient.post).mockResolvedValue({
+      mockHttpClient.post.mockResolvedValue({
         type: "error",
         error: {
           kind: "network-error",
@@ -199,13 +199,13 @@ describe("McpProxy", () => {
         params: {},
       };
 
-      vi.mocked(mockAuthClient.getIdToken).mockResolvedValue({
+      mockAuthClient.getIdToken.mockResolvedValue({
         type: "success",
         token: "mock-token",
         expiresAt: new Date(Date.now() + 3600000),
       });
 
-      vi.mocked(mockHttpClient.post).mockResolvedValue({
+      mockHttpClient.post.mockResolvedValue({
         type: "error",
         error: {
           kind: "timeout",
@@ -236,13 +236,13 @@ describe("McpProxy", () => {
         params: {},
       };
 
-      vi.mocked(mockAuthClient.getIdToken).mockResolvedValue({
+      mockAuthClient.getIdToken.mockResolvedValue({
         type: "success",
         token: "mock-token",
         expiresAt: new Date(Date.now() + 3600000),
       });
 
-      vi.mocked(mockHttpClient.post).mockResolvedValue({
+      mockHttpClient.post.mockResolvedValue({
         type: "success",
         data: { invalid: "response" },
         status: 200,
@@ -272,7 +272,7 @@ describe("McpProxy", () => {
         params: {},
       };
 
-      vi.mocked(mockAuthClient.getIdToken).mockRejectedValue(
+      mockAuthClient.getIdToken.mockRejectedValue(
         new Error("Unexpected error"),
       );
 
@@ -305,13 +305,13 @@ describe("McpProxy", () => {
         result: { tools: [] },
       };
 
-      vi.mocked(mockAuthClient.getIdToken).mockResolvedValue({
+      mockAuthClient.getIdToken.mockResolvedValue({
         type: "success",
         token: "mock-token",
         expiresAt: new Date(Date.now() + 3600000),
       });
 
-      vi.mocked(mockHttpClient.post).mockResolvedValue({
+      mockHttpClient.post.mockResolvedValue({
         type: "success",
         data: expectedResponse,
         status: 200,
@@ -330,13 +330,13 @@ describe("McpProxy", () => {
         params: {},
       };
 
-      vi.mocked(mockAuthClient.getIdToken).mockResolvedValue({
+      mockAuthClient.getIdToken.mockResolvedValue({
         type: "success",
         token: "mock-token",
         expiresAt: new Date(Date.now() + 3600000),
       });
 
-      vi.mocked(mockHttpClient.post).mockResolvedValue({
+      mockHttpClient.post.mockResolvedValue({
         type: "success",
         data: null,
         status: 200,

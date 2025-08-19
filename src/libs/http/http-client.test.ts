@@ -16,7 +16,6 @@ describe("HttpClient", () => {
   beforeEach(() => {
     httpClient = createHttpClient();
     vi.clearAllMocks();
-    vi.useFakeTimers();
 
     mockAbortController = {
       abort: vi.fn(),
@@ -28,7 +27,7 @@ describe("HttpClient", () => {
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   describe("post", () => {

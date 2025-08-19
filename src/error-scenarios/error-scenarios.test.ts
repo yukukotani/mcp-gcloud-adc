@@ -21,19 +21,6 @@ describe("Error Scenarios", () => {
 
   describe("認証エラーシナリオ", () => {
     it("ADC認証情報が見つからない場合", async () => {
-      vi.doMock("../libs/auth/google-auth.js", () => ({
-        createAuthClient: () => ({
-          getIdToken: vi.fn(),
-          refreshToken: vi.fn().mockResolvedValue({
-            type: "error",
-            error: {
-              kind: "no-credentials",
-              message: "Could not load the default credentials",
-            },
-          }),
-        }),
-      }));
-
       const proxy = createMcpProxy({
         targetUrl: "https://example.com/mcp",
         timeout: 30000,

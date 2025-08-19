@@ -3,18 +3,7 @@ import type {
   JSONRPCRequest,
 } from "@modelcontextprotocol/sdk/types.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createAuthClient } from "../libs/auth/google-auth.js";
-import { createHttpClient } from "../libs/http/http-client.js";
 import { createMcpProxy } from "../usecase/mcp-proxy/handler.js";
-
-// ファクトリー関数をモック
-vi.mock("../libs/http/http-client.js", () => ({
-  createHttpClient: vi.fn(),
-}));
-
-vi.mock("../libs/auth/google-auth.js", () => ({
-  createAuthClient: vi.fn(),
-}));
 
 // HTTPクライアントのモック
 const mockHttpClient = {
@@ -31,10 +20,6 @@ describe("Streaming Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // モックの設定
-    vi.mocked(createHttpClient).mockReturnValue(mockHttpClient);
-    vi.mocked(createAuthClient).mockReturnValue(mockAuthClient);
-
     // デフォルトの認証レスポンス
     mockAuthClient.getIdToken.mockResolvedValue({
       type: "success",
@@ -44,7 +29,7 @@ describe("Streaming Tests", () => {
   });
 
   afterEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("HTTPクライアントストリーミング", () => {
@@ -65,7 +50,7 @@ describe("Streaming Tests", () => {
         }
       });
 
-      const httpClient = createHttpClient();
+      const httpClient = mockHttpClient;
       const results: string[] = [];
 
       for await (const chunk of httpClient.postStream({
@@ -88,9 +73,9 @@ describe("Streaming Tests", () => {
         throw new Error("Stream interrupted");
       });
 
-      const httpClient = createHttpClient();
+      const httpClient = mockHttpClient;
 
-      await expect(async () => {
+      const streamPromise = (async () => {
         for await (const _chunk of httpClient.postStream({
           url: "https://example.com/stream",
           headers: {},
@@ -99,7 +84,9 @@ describe("Streaming Tests", () => {
         })) {
           // チャンクを処理
         }
-      }).rejects.toThrow("Stream interrupted");
+      })();
+
+      await expect(streamPromise).rejects.toThrow("Stream interrupted");
     });
 
     it("空のストリームを処理する", async () => {
@@ -107,7 +94,7 @@ describe("Streaming Tests", () => {
         // 何も yield しない
       });
 
-      const httpClient = createHttpClient();
+      const httpClient = mockHttpClient;
       const results: string[] = [];
 
       for await (const chunk of httpClient.postStream({
@@ -232,7 +219,7 @@ describe("Streaming Tests", () => {
         }
       });
 
-      const httpClient = createHttpClient();
+      const httpClient = mockHttpClient;
       let processedChunks = 0;
 
       for await (const chunk of httpClient.postStream({
@@ -263,7 +250,7 @@ describe("Streaming Tests", () => {
         };
       });
 
-      const httpClient = createHttpClient();
+      const httpClient = mockHttpClient;
       let receivedData = "";
 
       for await (const chunk of httpClient.postStream({
@@ -293,7 +280,7 @@ describe("Streaming Tests", () => {
         };
       });
 
-      const httpClient = createHttpClient();
+      const httpClient = mockHttpClient;
       const chunks: { type: string; error?: unknown }[] = [];
 
       for await (const chunk of httpClient.postStream({
@@ -324,7 +311,7 @@ describe("Streaming Tests", () => {
         };
       });
 
-      const httpClient = createHttpClient();
+      const httpClient = mockHttpClient;
       const results: string[] = [];
 
       for await (const chunk of httpClient.postStream({

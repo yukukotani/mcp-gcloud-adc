@@ -6,20 +6,15 @@ import type { AuthConfig } from "./types.js";
 const mockFetchIdToken = vi.fn();
 const mockGetClient = vi.fn();
 
-vi.mock("google-auth-library", () => ({
-  GoogleAuth: vi.fn().mockImplementation(() => ({
-    getClient: mockGetClient,
-  })),
-}));
+// Googleライブラリはdynamic mockingを使用
 
 describe("AuthClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   describe("getIdToken", () => {
