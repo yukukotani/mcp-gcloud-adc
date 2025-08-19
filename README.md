@@ -1,168 +1,122 @@
 # mcp-gcloud-adc
 
-A proxy tool for accessing MCP servers using Google Cloud Application Default Credentials (ADC)
+Google Cloud Application Default Credentials (ADC) を使用して MCP サーバーにアクセスするためのプロキシツール
 
-## Overview
+## 概要
 
-This tool authenticates using Google Cloud Application Default Credentials (ADC) and proxies requests to Model Context Protocol (MCP) servers. It's particularly useful for accessing MCP servers running on Google Cloud services like Cloud Run.
+このツールは Google Cloud Application Default Credentials (ADC) を使用して認証を行い、Model Context Protocol (MCP) サーバーへのリクエストをプロキシします。特に Cloud Run などの Google Cloud サービス上で動作する MCP サーバーへのアクセスに便利です。
 
-## Features
+## 主な機能
 
-- **ADC Authentication**: Automatically uses Google Cloud Application Default Credentials
-- **MCP Proxy**: Transparently proxies JSON-RPC formatted MCP requests
-- **Error Handling**: Properly handles authentication errors, network errors, and HTTP errors
-- **CLI Interface**: Simple command-line operation
+- **ADC 認証**: Google Cloud Application Default Credentials を自動的に使用
+- **MCP プロキシ**: JSON-RPC 形式の MCP リクエストを透過的にプロキシ
+- **エラーハンドリング**: 認証エラー、ネットワークエラー、HTTP エラーを適切に処理
+- **CLI インターフェース**: シンプルなコマンドライン操作
 
-## Setup
-
-### 1. Install Dependencies
+## インストール
 
 ```bash
-bun install
+npm install -g mcp-gcloud-adc
 ```
 
-### 2. Configure Google Cloud Authentication
+## 使い方
 
-Set up ADC using one of the following methods:
+### 前提条件
+
+Google Cloud の認証情報を設定する必要があります。以下のいずれかの方法で設定してください：
 
 ```bash
-# Method 1: User authentication using gcloud CLI
+# 方法1: gcloud CLI を使用したユーザー認証
 gcloud auth application-default login
 
-# Method 2: Using service account key
+# 方法2: サービスアカウントキーを使用
 export GOOGLE_APPLICATION_CREDENTIALS="path/to/service-account.json"
 ```
 
-### 3. Build
+### 基本的な使い方
 
 ```bash
-bun run build
+# MCP プロキシを起動
+mcp-gcloud-adc --url https://your-cloud-run-service.run.app --timeout 30000
 ```
 
-## Usage
+### パラメータ
 
-### Basic Usage
+- `--url`: ターゲット MCP サーバーの URL（必須）
+- `--timeout`: リクエストタイムアウト（ミリ秒）（デフォルト: 30000）
+
+### 使用例
 
 ```bash
-# Start MCP proxy
-bun run start --url https://your-cloud-run-service.run.app --timeout 30000
+# Cloud Run サービスへのプロキシ
+mcp-gcloud-adc --url https://mcp-server-abcd1234-uw.a.run.app --timeout 10000
 
-# Or use the built binary
-node dist/index.js --url https://your-cloud-run-service.run.app --timeout 30000
+# ローカル HTTP サーバーへのプロキシ（認証なし）
+mcp-gcloud-adc --url http://localhost:3000 --timeout 5000
 ```
 
-### Parameters
+## Claude Desktop での設定
 
-- `--url`: URL of the target MCP server (required)
-- `--timeout`: Request timeout in milliseconds (default: 30000)
+Claude Desktop の設定ファイル（`claude_desktop_config.json`）に以下のように追加します：
 
-### Examples
+```json
+{
+  "mcpServers": {
+    "your-server-name": {
+      "command": "npx",
+      "args": [
+        "mcp-gcloud-adc",
+        "--url",
+        "https://your-cloud-run-service.run.app"
+      ]
+    }
+  }
+}
+```
+
+## 認証について
+
+このツールは Google Cloud Application Default Credentials (ADC) を使用します。ADC は以下の順序で認証情報を検索します：
+
+1. `GOOGLE_APPLICATION_CREDENTIALS` 環境変数で指定されたサービスアカウントキー
+2. gcloud CLI で設定されたユーザー認証情報
+3. Google Cloud 環境（Compute Engine、Cloud Run など）のメタデータサーバー
+
+詳細については [Google Cloud のドキュメント](https://cloud.google.com/docs/authentication/application-default-credentials) を参照してください。
+
+## エラーハンドリング
+
+以下のエラーが適切に処理されます：
+
+- **認証エラー**: ADC 認証情報が見つからない、または無効なトークン
+- **ネットワークエラー**: 接続失敗、タイムアウト
+- **HTTP エラー**: 4xx、5xx ステータスコード
+- **JSON-RPC エラー**: 無効なリクエスト/レスポンス形式
+
+## トラブルシューティング
+
+### 認証エラーが発生する場合
 
 ```bash
-# Proxy to Cloud Run service
-bun run start --url https://mcp-server-abcd1234-uw.a.run.app --timeout 10000
+# ADC が正しく設定されているか確認
+gcloud auth application-default print-access-token
 
-# Proxy to local HTTP server (no authentication)
-bun run start --url http://localhost:3000 --timeout 5000
+# 再度ログイン
+gcloud auth application-default login
 ```
 
-## Architecture
+### タイムアウトが発生する場合
 
-### Directory Structure
-
-```
-src/
-├── presentation/     # Presentation layer
-│   ├── cli.ts       # CLI interface
-│   └── mcp-proxy-handlers.ts  # HTTP/JSON-RPC conversion
-├── usecase/         # Use case layer
-│   └── mcp-proxy/   # Proxy business logic
-└── libs/           # Library layer
-    ├── auth/       # Google Cloud authentication
-    └── http/       # HTTP client
-```
-
-### Main Components
-
-- **CLI (`presentation/cli.ts`)**: Command-line argument processing and application startup
-- **MCP Proxy (`usecase/mcp-proxy/`)**: Authenticated request processing and upstream forwarding
-- **Auth Client (`libs/auth/`)**: ID token acquisition using Google Cloud ADC
-- **HTTP Client (`libs/http/`)**: HTTP request sending and error handling
-
-## Development
-
-### Running Tests
+`--timeout` パラメータの値を増やしてください：
 
 ```bash
-# Run all tests
-bun test
-
-# Run specific test file
-bun test src/usecase/mcp-proxy/handler.test.ts
-
-# Use Vitest directly
-bunx vitest
+mcp-gcloud-adc --url https://your-service.run.app --timeout 60000
 ```
 
-### Linting and Formatting
-
-```bash
-# Run lint and type check
-bun lint
-
-# Fix formatting issues
-bun run biome check . --fix
-```
-
-### Build
-
-```bash
-# Build with tsdown
-bun run build
-
-# Watch mode for development
-bun run dev
-```
-
-## Authentication
-
-This tool uses Google Cloud Application Default Credentials (ADC). ADC searches for credentials in the following order:
-
-1. Service account key specified by the `GOOGLE_APPLICATION_CREDENTIALS` environment variable
-2. User credentials set by the gcloud CLI
-3. Metadata server in Google Cloud environments (Compute Engine, Cloud Run, etc.)
-
-For more details, see the [Google Cloud documentation](https://cloud.google.com/docs/authentication/application-default-credentials).
-
-## Error Handling
-
-The following errors are properly handled:
-
-- **Authentication Errors**: ADC credentials not found or invalid tokens
-- **Network Errors**: Connection failures, timeouts
-- **HTTP Errors**: 4xx, 5xx status codes
-- **JSON-RPC Errors**: Invalid request/response formats
-
-## License
+## ライセンス
 
 MIT License
 
-## Developer Information
+## 貢献
 
-### Commit Guidelines
-
-- Small, frequent commits are recommended
-- Commit messages should be written in Japanese
-- Create separate commits for each task
-
-### Test-Driven Development
-
-- Create tests before implementing new features
-- Use power-assert for assertions
-- Use vitest for test execution
-
-### Coding Guidelines
-
-- Functional programming style
-- Use tagged unions for error handling
-- Prefer functions over classes
+Issue や Pull Request を歓迎します。[GitHub リポジトリ](https://github.com/yukukotani/mcp-gcloud-adc) をご覧ください。
