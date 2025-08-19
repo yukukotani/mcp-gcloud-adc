@@ -35,9 +35,7 @@ async function main(): Promise<void> {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
-    process.stderr.write(`Unexpected error: ${error}\n`);
-    process.exit(1);
-  });
-}
+main().catch((error) => {
+  process.stderr.write(`Unexpected error: ${error}\n`);
+  process.exit(1);
+});
