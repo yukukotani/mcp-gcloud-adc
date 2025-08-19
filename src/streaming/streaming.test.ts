@@ -180,9 +180,13 @@ describe("Streaming Tests", () => {
     });
 
     it("ストリーミング中のHTTPエラーを処理する", async () => {
-      mockHttpClient.postStream.mockImplementation(async function* () {
-        yield { type: "data", data: '{"partial": "data"}', isLast: false };
-        throw new Error("Connection lost");
+      // プロキシは現在postを使用するため、postでエラーを返すように設定
+      mockHttpClient.post.mockResolvedValue({
+        type: "error",
+        error: {
+          kind: "network-error",
+          message: "Connection lost",
+        },
       });
 
       const proxy = createMcpProxy({
