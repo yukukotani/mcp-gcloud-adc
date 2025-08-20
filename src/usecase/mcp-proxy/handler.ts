@@ -30,6 +30,13 @@ const handleRequest = async (
       Accept: "application/json, text/event-stream",
     };
 
+    // セッションIDが存在する場合はヘッダーに追加
+    const sessionId = config.sessionManager.getSessionId();
+    if (sessionId) {
+      headers["Mcp-Session-Id"] = sessionId;
+      logger.debug({ sessionId }, "リクエストにセッションIDを追加");
+    }
+
     const tokenResult = await config.authClient.getIdToken(config.targetUrl);
 
     if (tokenResult.type === "error") {
@@ -54,11 +61,29 @@ const handleRequest = async (
     });
 
     if (httpResponse.type === "error") {
+      // HTTP 404はセッション終了を意味する
+      if (
+        httpResponse.error.kind === "http-error" &&
+        httpResponse.error.status === 404
+      ) {
+        logger.debug("HTTP 404受信、セッションをクリア");
+        config.sessionManager.clearSession();
+      }
+
       logger.warn(
         { method: request.method, id: request.id, error: httpResponse.error },
         "HTTP request failed",
       );
       return createErrorResponseFromHttpError(request.id, httpResponse.error);
+    }
+
+    // 成功レスポンスからMcp-Session-Idヘッダーを確認
+    const responseSessionId =
+      httpResponse.headers["mcp-session-id"] ||
+      httpResponse.headers["Mcp-Session-Id"];
+    if (responseSessionId) {
+      logger.debug({ responseSessionId }, "レスポンスからセッションIDを受信");
+      config.sessionManager.setSessionId(responseSessionId);
     }
 
     const responseData = httpResponse.data;
@@ -108,6 +133,13 @@ const handleMessage = async (
         Accept: "application/json, text/event-stream",
       };
 
+      // セッションIDが存在する場合はヘッダーに追加
+      const sessionId = config.sessionManager.getSessionId();
+      if (sessionId) {
+        headers["Mcp-Session-Id"] = sessionId;
+        logger.debug({ sessionId }, "通知にセッションIDを追加");
+      }
+
       const tokenResult = await config.authClient.getIdToken(config.targetUrl);
 
       if (tokenResult.type === "error") {
@@ -120,12 +152,22 @@ const handleMessage = async (
 
       headers.Authorization = `Bearer ${tokenResult.token}`;
 
-      await config.httpClient.post({
+      const httpResponse = await config.httpClient.post({
         url: config.targetUrl,
         headers,
         body: message,
         timeout: config.timeout,
       });
+
+      // 通知でもセッション終了を検知
+      if (
+        httpResponse.type === "error" &&
+        httpResponse.error.kind === "http-error" &&
+        httpResponse.error.status === 404
+      ) {
+        logger.debug("通知でHTTP 404受信、セッションをクリア");
+        config.sessionManager.clearSession();
+      }
 
       logger.debug({ method }, "Successfully handled JSONRPC notification");
       return message;

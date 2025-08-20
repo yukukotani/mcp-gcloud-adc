@@ -4,6 +4,7 @@ import { createHttpClient } from "../libs/http/http-client.js";
 import { logger } from "../libs/logging/logger.js";
 import { setupSimpleMcpServer } from "../presentation/mcp-server-simple.js";
 import { createMcpProxy } from "./mcp-proxy/handler.js";
+import { createSessionManager } from "./mcp-proxy/session-manager.js";
 import type { ProxyOptions } from "./mcp-proxy/types.js";
 
 type StartProxyResult =
@@ -50,6 +51,10 @@ export async function startProxy(
     logger.debug("Initializing HTTP client");
     const httpClient = createHttpClient();
 
+    // セッションマネージャーの初期化
+    logger.debug("Initializing session manager");
+    const sessionManager = createSessionManager();
+
     // プロキシハンドラーの作成
     logger.debug("Creating MCP proxy handler");
     const proxy = createMcpProxy({
@@ -57,6 +62,7 @@ export async function startProxy(
       timeout: options.timeout,
       authClient,
       httpClient,
+      sessionManager,
     });
 
     // MCPサーバーのセットアップと接続

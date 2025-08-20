@@ -6,11 +6,12 @@ import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import type { AuthClient } from "../../libs/auth/types.js";
 import type { HttpClient } from "../../libs/http/types.js";
 import { createMcpProxy } from "./handler.js";
-import type { ProxyConfig } from "./types.js";
+import type { ProxyConfig, SessionManager } from "./types.js";
 
 describe("McpProxy", () => {
   let mockAuthClient: AuthClient;
   let mockHttpClient: HttpClient;
+  let mockSessionManager: SessionManager;
   let config: ProxyConfig;
   let proxy: ReturnType<typeof createMcpProxy>;
 
@@ -25,11 +26,18 @@ describe("McpProxy", () => {
       postStream: vi.fn() as Mock,
     };
 
+    mockSessionManager = {
+      getSessionId: vi.fn() as Mock,
+      setSessionId: vi.fn() as Mock,
+      clearSession: vi.fn() as Mock,
+    };
+
     config = {
       targetUrl: "https://example.com/api",
       timeout: 5000,
       authClient: mockAuthClient,
       httpClient: mockHttpClient,
+      sessionManager: mockSessionManager,
     };
 
     proxy = createMcpProxy(config);
@@ -50,6 +58,7 @@ describe("McpProxy", () => {
         result: { tools: [] },
       };
 
+      (mockSessionManager.getSessionId as Mock).mockReturnValue(null);
       (mockAuthClient.getIdToken as Mock).mockResolvedValue({
         type: "success",
         token: "mock-token",
@@ -65,6 +74,7 @@ describe("McpProxy", () => {
 
       const result = await proxy.handleRequest(request);
 
+      expect(mockSessionManager.getSessionId).toHaveBeenCalled();
       expect(mockAuthClient.getIdToken).toHaveBeenCalledWith(
         "https://example.com/api",
       );
@@ -89,6 +99,7 @@ describe("McpProxy", () => {
         params: {},
       };
 
+      (mockSessionManager.getSessionId as Mock).mockReturnValue(null);
       (mockAuthClient.getIdToken as Mock).mockResolvedValue({
         type: "error",
         error: {
@@ -367,11 +378,145 @@ describe("createMcpProxy", () => {
       timeout: 5000,
       authClient: {} as AuthClient,
       httpClient: {} as HttpClient,
+      sessionManager: {} as SessionManager,
     };
 
     const proxy = createMcpProxy(config);
     expect(proxy).toBeTruthy();
     expect(typeof proxy.handleRequest).toBe("function");
     expect(typeof proxy.handleMessage).toBe("function");
+  });
+});
+
+describe("Session Management", () => {
+  let mockAuthClient: AuthClient;
+  let mockHttpClient: HttpClient;
+  let mockSessionManager: SessionManager;
+  let config: ProxyConfig;
+  let proxy: ReturnType<typeof createMcpProxy>;
+
+  beforeEach(() => {
+    mockAuthClient = {
+      getIdToken: vi.fn() as Mock,
+      refreshToken: vi.fn() as Mock,
+    };
+
+    mockHttpClient = {
+      post: vi.fn() as Mock,
+      postStream: vi.fn() as Mock,
+    };
+
+    mockSessionManager = {
+      getSessionId: vi.fn() as Mock,
+      setSessionId: vi.fn() as Mock,
+      clearSession: vi.fn() as Mock,
+    };
+
+    config = {
+      targetUrl: "https://example.com/api",
+      timeout: 5000,
+      authClient: mockAuthClient,
+      httpClient: mockHttpClient,
+      sessionManager: mockSessionManager,
+    };
+
+    proxy = createMcpProxy(config);
+  });
+
+  it("セッションIDがある場合はヘッダーに含める", async () => {
+    const request: JSONRPCRequest = {
+      jsonrpc: "2.0" as const,
+      id: 1,
+      method: "initialize",
+      params: {},
+    };
+
+    const sessionId = "session-123";
+    (mockSessionManager.getSessionId as Mock).mockReturnValue(sessionId);
+    (mockAuthClient.getIdToken as Mock).mockResolvedValue({
+      type: "success",
+      token: "mock-token",
+      expiresAt: new Date(Date.now() + 3600000),
+    });
+
+    (mockHttpClient.post as Mock).mockResolvedValue({
+      type: "success",
+      data: { jsonrpc: "2.0", id: 1, result: {} },
+      status: 200,
+      headers: {},
+    });
+
+    await proxy.handleRequest(request);
+
+    expect(mockHttpClient.post).toHaveBeenCalledWith({
+      url: "https://example.com/api",
+      headers: {
+        Authorization: "Bearer mock-token",
+        "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
+        "Mcp-Session-Id": sessionId,
+      },
+      body: request,
+      timeout: 5000,
+    });
+  });
+
+  it("レスポンスからセッションIDを保存する", async () => {
+    const request: JSONRPCRequest = {
+      jsonrpc: "2.0" as const,
+      id: 1,
+      method: "initialize",
+      params: {},
+    };
+
+    const responseSessionId = "new-session-456";
+    (mockSessionManager.getSessionId as Mock).mockReturnValue(null);
+    (mockAuthClient.getIdToken as Mock).mockResolvedValue({
+      type: "success",
+      token: "mock-token",
+      expiresAt: new Date(Date.now() + 3600000),
+    });
+
+    (mockHttpClient.post as Mock).mockResolvedValue({
+      type: "success",
+      data: { jsonrpc: "2.0", id: 1, result: {} },
+      status: 200,
+      headers: { "Mcp-Session-Id": responseSessionId },
+    });
+
+    await proxy.handleRequest(request);
+
+    expect(mockSessionManager.setSessionId).toHaveBeenCalledWith(
+      responseSessionId,
+    );
+  });
+
+  it("HTTP 404でセッションをクリアする", async () => {
+    const request: JSONRPCRequest = {
+      jsonrpc: "2.0" as const,
+      id: 1,
+      method: "tools/list",
+      params: {},
+    };
+
+    (mockSessionManager.getSessionId as Mock).mockReturnValue("session-123");
+    (mockAuthClient.getIdToken as Mock).mockResolvedValue({
+      type: "success",
+      token: "mock-token",
+      expiresAt: new Date(Date.now() + 3600000),
+    });
+
+    (mockHttpClient.post as Mock).mockResolvedValue({
+      type: "error",
+      error: {
+        kind: "http-error",
+        status: 404,
+        message: "Not Found",
+      },
+    });
+
+    await proxy.handleRequest(request);
+
+    expect(mockSessionManager.clearSession).toHaveBeenCalled();
   });
 });

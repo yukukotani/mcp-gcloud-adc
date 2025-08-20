@@ -16,6 +16,12 @@ const mockAuthClient = {
   refreshToken: vi.fn(),
 };
 
+const mockSessionManager = {
+  getSessionId: vi.fn(),
+  setSessionId: vi.fn(),
+  clearSession: vi.fn(),
+};
+
 describe("Streaming Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -26,6 +32,9 @@ describe("Streaming Tests", () => {
       token: "mock-id-token",
       expiresAt: Date.now() + 3600000,
     });
+
+    // デフォルトのセッションマネージャー設定
+    mockSessionManager.getSessionId.mockReturnValue(null);
   });
 
   afterEach(() => {
@@ -132,6 +141,7 @@ describe("Streaming Tests", () => {
         timeout: 30000,
         authClient: mockAuthClient,
         httpClient: mockHttpClient,
+        sessionManager: mockSessionManager,
       });
 
       const request: JSONRPCRequest = {
@@ -162,6 +172,7 @@ describe("Streaming Tests", () => {
         timeout: 30000,
         authClient: mockAuthClient,
         httpClient: mockHttpClient,
+        sessionManager: mockSessionManager,
       });
 
       const request: JSONRPCRequest = {
@@ -194,6 +205,7 @@ describe("Streaming Tests", () => {
         timeout: 30000,
         authClient: mockAuthClient,
         httpClient: mockHttpClient,
+        sessionManager: mockSessionManager,
       });
 
       const request: JSONRPCRequest = {

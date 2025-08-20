@@ -11,11 +11,18 @@ export type McpProxy = {
   handleMessage: (message: JSONRPCMessage) => Promise<JSONRPCMessage>;
 };
 
+export type SessionManager = {
+  getSessionId(): string | null;
+  setSessionId(sessionId: string): void;
+  clearSession(): void;
+};
+
 export type ProxyConfig = {
   targetUrl: string;
   timeout: number;
   authClient: AuthClient;
   httpClient: HttpClient;
+  sessionManager: SessionManager;
 };
 
 export type ProxyOptions = {

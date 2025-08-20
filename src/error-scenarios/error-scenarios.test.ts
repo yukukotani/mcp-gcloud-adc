@@ -4,8 +4,30 @@ import type {
 } from "@modelcontextprotocol/sdk/types.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMcpProxy } from "../usecase/mcp-proxy/handler.js";
-import type { ProxyOptions } from "../usecase/mcp-proxy/types.js";
+import type { ProxyConfig, ProxyOptions } from "../usecase/mcp-proxy/types.js";
 import { startProxy } from "../usecase/start-proxy.js";
+
+// テスト用のヘルパー関数
+const createTestProxyConfig = (
+  overrides: Partial<ProxyConfig> = {},
+): ProxyConfig => ({
+  targetUrl: "https://example.com/mcp",
+  timeout: 30000,
+  authClient: {
+    getIdToken: vi.fn(),
+    refreshToken: vi.fn(),
+  },
+  httpClient: {
+    post: vi.fn(),
+    postStream: vi.fn(),
+  },
+  sessionManager: {
+    getSessionId: vi.fn().mockReturnValue(null),
+    setSessionId: vi.fn(),
+    clearSession: vi.fn(),
+  },
+  ...overrides,
+});
 
 describe("Error Scenarios", () => {
   beforeEach(() => {
@@ -21,24 +43,20 @@ describe("Error Scenarios", () => {
 
   describe("認証エラーシナリオ", () => {
     it("ADC認証情報が見つからない場合", async () => {
-      const proxy = createMcpProxy({
-        targetUrl: "https://example.com/mcp",
-        timeout: 30000,
-        authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
-            type: "error",
-            error: {
-              kind: "no-credentials",
-              message: "Could not load the default credentials",
-            },
-          }),
-          refreshToken: vi.fn(),
-        },
-        httpClient: {
-          post: vi.fn(),
-          postStream: vi.fn(),
-        },
-      });
+      const proxy = createMcpProxy(
+        createTestProxyConfig({
+          authClient: {
+            getIdToken: vi.fn().mockResolvedValue({
+              type: "error",
+              error: {
+                kind: "no-credentials",
+                message: "Could not load the default credentials",
+              },
+            }),
+            refreshToken: vi.fn(),
+          },
+        }),
+      );
 
       const request: JSONRPCRequest = {
         jsonrpc: "2.0",
@@ -75,15 +93,11 @@ describe("Error Scenarios", () => {
         }),
       };
 
-      const proxy = createMcpProxy({
-        targetUrl: "https://example.com/mcp",
-        timeout: 30000,
-        authClient: mockAuthClient,
-        httpClient: {
-          post: vi.fn(),
-          postStream: vi.fn(),
-        },
-      });
+      const proxy = createMcpProxy(
+        createTestProxyConfig({
+          authClient: mockAuthClient,
+        }),
+      );
 
       const request: JSONRPCRequest = {
         jsonrpc: "2.0",
@@ -117,15 +131,11 @@ describe("Error Scenarios", () => {
         }),
       };
 
-      const proxy = createMcpProxy({
-        targetUrl: "https://example.com/mcp",
-        timeout: 30000,
-        authClient: mockAuthClient,
-        httpClient: {
-          post: vi.fn(),
-          postStream: vi.fn(),
-        },
-      });
+      const proxy = createMcpProxy(
+        createTestProxyConfig({
+          authClient: mockAuthClient,
+        }),
+      );
 
       const request: JSONRPCRequest = {
         jsonrpc: "2.0",
@@ -156,23 +166,23 @@ describe("Error Scenarios", () => {
         postStream: vi.fn(),
       };
 
-      const proxy = createMcpProxy({
-        targetUrl: "https://example.com/mcp",
-        timeout: 30000,
-        authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-          refreshToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-        },
-        httpClient: mockHttpClient,
-      });
+      const proxy = createMcpProxy(
+        createTestProxyConfig({
+          authClient: {
+            getIdToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+            refreshToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+          },
+          httpClient: mockHttpClient,
+        }),
+      );
 
       const request: JSONRPCRequest = {
         jsonrpc: "2.0",
@@ -201,23 +211,23 @@ describe("Error Scenarios", () => {
         postStream: vi.fn(),
       };
 
-      const proxy = createMcpProxy({
-        targetUrl: "https://example.com/mcp",
-        timeout: 30000,
-        authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-          refreshToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-        },
-        httpClient: mockHttpClient,
-      });
+      const proxy = createMcpProxy(
+        createTestProxyConfig({
+          authClient: {
+            getIdToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+            refreshToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+          },
+          httpClient: mockHttpClient,
+        }),
+      );
 
       const request: JSONRPCRequest = {
         jsonrpc: "2.0",
@@ -249,23 +259,23 @@ describe("Error Scenarios", () => {
         postStream: vi.fn(),
       };
 
-      const proxy = createMcpProxy({
-        targetUrl: "https://example.com/mcp",
-        timeout: 30000,
-        authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-          refreshToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-        },
-        httpClient: mockHttpClient,
-      });
+      const proxy = createMcpProxy(
+        createTestProxyConfig({
+          authClient: {
+            getIdToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+            refreshToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+          },
+          httpClient: mockHttpClient,
+        }),
+      );
 
       const request: JSONRPCRequest = {
         jsonrpc: "2.0",
@@ -295,23 +305,23 @@ describe("Error Scenarios", () => {
         postStream: vi.fn(),
       };
 
-      const proxy = createMcpProxy({
-        targetUrl: "https://example.com/mcp",
-        timeout: 30000,
-        authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-          refreshToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-        },
-        httpClient: mockHttpClient,
-      });
+      const proxy = createMcpProxy(
+        createTestProxyConfig({
+          authClient: {
+            getIdToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+            refreshToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+          },
+          httpClient: mockHttpClient,
+        }),
+      );
 
       const request: JSONRPCRequest = {
         jsonrpc: "2.0",
@@ -342,23 +352,23 @@ describe("Error Scenarios", () => {
         postStream: vi.fn(),
       };
 
-      const proxy = createMcpProxy({
-        targetUrl: "https://example.com/mcp",
-        timeout: 30000,
-        authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-          refreshToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-        },
-        httpClient: mockHttpClient,
-      });
+      const proxy = createMcpProxy(
+        createTestProxyConfig({
+          authClient: {
+            getIdToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+            refreshToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+          },
+          httpClient: mockHttpClient,
+        }),
+      );
 
       const request: JSONRPCRequest = {
         jsonrpc: "2.0",
@@ -375,26 +385,22 @@ describe("Error Scenarios", () => {
     });
 
     it("無効なリクエスト形式", async () => {
-      const proxy = createMcpProxy({
-        targetUrl: "https://example.com/mcp",
-        timeout: 30000,
-        authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-          refreshToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-        },
-        httpClient: {
-          post: vi.fn(),
-          postStream: vi.fn(),
-        },
-      });
+      const proxy = createMcpProxy(
+        createTestProxyConfig({
+          authClient: {
+            getIdToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+            refreshToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+          },
+        }),
+      );
 
       // JSON-RPC仕様に準拠しないリクエスト
       const invalidRequest = {
@@ -474,23 +480,23 @@ describe("Error Scenarios", () => {
         postStream: vi.fn(),
       };
 
-      const proxy = createMcpProxy({
-        targetUrl: "https://example.com/mcp",
-        timeout: 30000,
-        authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-          refreshToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-        },
-        httpClient: mockHttpClient,
-      });
+      const proxy = createMcpProxy(
+        createTestProxyConfig({
+          authClient: {
+            getIdToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+            refreshToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+          },
+          httpClient: mockHttpClient,
+        }),
+      );
 
       const request: JSONRPCRequest = {
         jsonrpc: "2.0",
@@ -522,23 +528,23 @@ describe("Error Scenarios", () => {
         postStream: vi.fn(),
       };
 
-      const proxy = createMcpProxy({
-        targetUrl: "https://example.com/mcp",
-        timeout: 30000,
-        authClient: {
-          getIdToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-          refreshToken: vi.fn().mockResolvedValue({
-            type: "success",
-            token: "valid-token",
-            expiresAt: Date.now() + 3600000,
-          }),
-        },
-        httpClient: mockHttpClient,
-      });
+      const proxy = createMcpProxy(
+        createTestProxyConfig({
+          authClient: {
+            getIdToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+            refreshToken: vi.fn().mockResolvedValue({
+              type: "success",
+              token: "valid-token",
+              expiresAt: Date.now() + 3600000,
+            }),
+          },
+          httpClient: mockHttpClient,
+        }),
+      );
 
       const requests = Array.from({ length: 10 }, (_, i) => ({
         jsonrpc: "2.0" as const,
