@@ -77,13 +77,18 @@ const handleRequest = async (
       return createErrorResponseFromHttpError(request.id, httpResponse.error);
     }
 
-    // 成功レスポンスからMcp-Session-Idヘッダーを確認
-    const responseSessionId =
-      httpResponse.headers["mcp-session-id"] ||
-      httpResponse.headers["Mcp-Session-Id"];
-    if (responseSessionId) {
-      logger.debug({ responseSessionId }, "レスポンスからセッションIDを受信");
-      config.sessionManager.setSessionId(responseSessionId);
+    // initializeリクエストの時のみMcp-Session-Idヘッダーを確認
+    if (request.method === "initialize") {
+      const responseSessionId =
+        httpResponse.headers["mcp-session-id"] ||
+        httpResponse.headers["Mcp-Session-Id"];
+      if (responseSessionId) {
+        logger.debug(
+          { responseSessionId },
+          "initializeレスポンスからセッションIDを受信",
+        );
+        config.sessionManager.setSessionId(responseSessionId);
+      }
     }
 
     const responseData = httpResponse.data;

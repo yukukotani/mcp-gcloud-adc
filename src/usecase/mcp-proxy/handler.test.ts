@@ -461,7 +461,7 @@ describe("Session Management", () => {
     });
   });
 
-  it("レスポンスからセッションIDを保存する", async () => {
+  it("initializeレスポンスからセッションIDを保存する", async () => {
     const request: JSONRPCRequest = {
       jsonrpc: "2.0" as const,
       id: 1,
@@ -489,6 +489,36 @@ describe("Session Management", () => {
     expect(mockSessionManager.setSessionId).toHaveBeenCalledWith(
       responseSessionId,
     );
+  });
+
+  it("initialize以外のリクエストではセッションIDを保存しない", async () => {
+    const request: JSONRPCRequest = {
+      jsonrpc: "2.0" as const,
+      id: 1,
+      method: "tools/list",
+      params: {},
+    };
+
+    const responseSessionId = "should-not-be-saved";
+    (mockSessionManager.getSessionId as Mock).mockReturnValue(
+      "existing-session",
+    );
+    (mockAuthClient.getIdToken as Mock).mockResolvedValue({
+      type: "success",
+      token: "mock-token",
+      expiresAt: new Date(Date.now() + 3600000),
+    });
+
+    (mockHttpClient.post as Mock).mockResolvedValue({
+      type: "success",
+      data: { jsonrpc: "2.0", id: 1, result: {} },
+      status: 200,
+      headers: { "Mcp-Session-Id": responseSessionId },
+    });
+
+    await proxy.handleRequest(request);
+
+    expect(mockSessionManager.setSessionId).not.toHaveBeenCalled();
   });
 
   it("HTTP 404でセッションをクリアする", async () => {
