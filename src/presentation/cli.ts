@@ -5,7 +5,7 @@ import { logger } from "../libs/logging/logger.js";
 import { startProxy } from "../usecase/start-proxy.js";
 
 const proxyCommand = define({
-  name: "mcp-gcloud-adc",
+  name: "mcp-gcloud-adc-proxy",
   description: "Google Cloud Run MCP Server Proxy with ADC authentication",
   args: {
     url: {
@@ -22,13 +22,13 @@ const proxyCommand = define({
     },
   },
   examples: `# Basic usage (HTTPS)
-$ mcp-gcloud-adc --url https://my-service-abc123-uc.a.run.app
+$ mcp-gcloud-adc-proxy --url https://my-service-abc123-uc.a.run.app
 
 # Local development (HTTP)
-$ mcp-gcloud-adc --url http://localhost:3000
+$ mcp-gcloud-adc-proxy --url http://localhost:3000
 
 # With custom timeout
-$ mcp-gcloud-adc -u https://my-service-abc123-uc.a.run.app -t 60000`,
+$ mcp-gcloud-adc-proxy -u https://my-service-abc123-uc.a.run.app -t 60000`,
   run: async (ctx) => {
     const { url, timeout } = ctx.values;
     await executeProxyCommand({ url, timeout });
@@ -84,7 +84,7 @@ export async function executeProxyCommand(options: CliOptions): Promise<void> {
 
 export async function runCli(): Promise<void> {
   await cli(process.argv.slice(2), proxyCommand, {
-    name: "mcp-gcloud-adc",
+    name: "mcp-gcloud-adc-proxy",
     version: packageInfo.version,
     description: "Google Cloud Run MCP Server Proxy with ADC authentication",
     renderHeader: async () => "",

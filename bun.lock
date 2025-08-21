@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "mcp-gcloud-adc",
+      "name": "mcp-gcloud-adc-proxy",
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.17.3",
         "google-auth-library": "^10.2.1",

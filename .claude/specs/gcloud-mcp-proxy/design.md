@@ -47,7 +47,7 @@ import type { CommandContext } from 'gunshi';
 
 // gunshiで型安全なコマンド定義
 const proxyCommand = define({
-  name: 'mcp-gcloud-adc',
+  name: 'mcp-gcloud-adc-proxy',
   description: 'Google Cloud Run MCP Server Proxy with ADC authentication',
   args: {
     url: {

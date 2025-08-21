@@ -68,7 +68,7 @@ export async function startProxy(
     // MCPサーバーのセットアップと接続
     logger.info("Setting up MCP server");
     await setupSimpleMcpServer({
-      name: "mcp-gcloud-adc",
+      name: "mcp-gcloud-adc-proxy",
       version: packageInfo.version,
       proxy,
     });

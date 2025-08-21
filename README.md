@@ -1,4 +1,4 @@
-# mcp-gcloud-adc
+# mcp-gcloud-adc-proxy
 
 [日本語](./README_ja.md)
 
@@ -30,17 +30,17 @@ See the [Google Cloud documentation](https://cloud.google.com/docs/authenticatio
 
 ```bash
 # Start MCP proxy
-mcp-gcloud-adc --url https://your-cloud-run-service.run.app
+mcp-gcloud-adc-proxy --url https://your-cloud-run-service.run.app
 ```
 
 ### Setup to Claude Code
 
 ```bash
 # Add to user scope (available across all projects)
-claude mcp add foobar -s user -- npx -y mcp-gcloud-adc -u https://foobar.run.app
+claude mcp add foobar -s user -- npx -y mcp-gcloud-adc-proxy -u https://foobar.run.app
 
 # Or add to project scope to share with your team
-claude mcp add foobar -s project -- npx -y mcp-gcloud-adc -u https://foobar.run.app
+claude mcp add foobar -s project -- npx -y mcp-gcloud-adc-proxy -u https://foobar.run.app
 ```
 
 ## License

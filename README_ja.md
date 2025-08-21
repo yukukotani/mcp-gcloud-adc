@@ -1,4 +1,4 @@
-# mcp-gcloud-adc
+# mcp-gcloud-adc-proxy
 
 Google Cloud Application Default Credentials (ADC) を使用してリモートMCPサーバーにアクセスするための認証プロキシ
 
@@ -28,17 +28,17 @@ export GOOGLE_APPLICATION_CREDENTIALS="path/to/service-account.json"
 
 ```bash
 # MCPプロキシを起動
-mcp-gcloud-adc --url https://your-cloud-run-service.run.app
+mcp-gcloud-adc-proxy --url https://your-cloud-run-service.run.app
 ```
 
 ### Claude Codeへの設定
 
 ```bash
 # ユーザースコープに追加（全プロジェクトで利用可能）
-claude mcp add foobar -s user -- npx -y mcp-gcloud-adc -u https://foobar.run.app
+claude mcp add foobar -s user -- npx -y mcp-gcloud-adc-proxy -u https://foobar.run.app
 
 # またはプロジェクトスコープに追加してチームと共有
-claude mcp add foobar -s project -- npx -y mcp-gcloud-adc -u https://foobar.run.app
+claude mcp add foobar -s project -- npx -y mcp-gcloud-adc-proxy -u https://foobar.run.app
 ```
 
 ## ライセンス

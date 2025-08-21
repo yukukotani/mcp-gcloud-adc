@@ -14,7 +14,7 @@ export function createLogger(config: LoggerConfig = {}): PinoLogger {
   const {
     level = "silent",
     type = "file",
-    filePath = "./mcp-gcloud-adc.log",
+    filePath = "./mcp-gcloud-adc-proxy.log",
   } = config;
 
   if (level === "silent") {
@@ -40,5 +40,5 @@ export function createLogger(config: LoggerConfig = {}): PinoLogger {
 export const logger = createLogger({
   type: (process.env.LOG_TYPE as LogType) || "file",
   level: (process.env.LOG_LEVEL as LevelWithSilent) || "silent",
-  filePath: process.env.LOG_FILE_PATH || "./mcp-gcloud-adc.log",
+  filePath: process.env.LOG_FILE_PATH || "./mcp-gcloud-adc-proxy.log",
 });
