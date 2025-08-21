@@ -3,6 +3,7 @@ import type { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdi
 import {
   CallToolRequestSchema,
   GetPromptRequestSchema,
+  InitializeRequestSchema,
   ListPromptsRequestSchema,
   ListResourcesRequestSchema,
   ListToolsRequestSchema,
@@ -22,6 +23,16 @@ export function registerProxyHandlers(
   config: HandlerConfig,
 ): void {
   const { proxy, idGenerator } = config;
+
+  server.setRequestHandler(InitializeRequestSchema, async (request) => {
+    const proxyResponse = await proxy.handleRequest({
+      jsonrpc: "2.0",
+      id: idGenerator(),
+      method: "initialize",
+      params: request.params,
+    });
+    return proxyResponse.result || {};
+  });
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     const proxyResponse = await proxy.handleRequest({

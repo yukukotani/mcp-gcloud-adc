@@ -82,11 +82,11 @@ const handleRequest = async (
       const responseSessionId =
         httpResponse.headers["mcp-session-id"] ||
         httpResponse.headers["Mcp-Session-Id"];
+      logger.debug(
+        { headers: httpResponse.headers, responseSessionId },
+        "initializeレスポンスを受信",
+      );
       if (responseSessionId) {
-        logger.debug(
-          { responseSessionId },
-          "initializeレスポンスからセッションIDを受信",
-        );
         config.sessionManager.setSessionId(responseSessionId);
       }
     }
