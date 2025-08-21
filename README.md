@@ -1,5 +1,7 @@
 # mcp-gcloud-adc
 
+[日本語](./README.ja.md)
+
 An auth proxy for accessing remote MCP servers using Google Cloud Application Default Credentials (ADC)
 
 ## Overview
