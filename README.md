@@ -1,3 +1,5 @@
+[![MSeeP.ai Security Assessment Badge](https://mseep.net/pr/yukukotani-mcp-gcloud-adc-proxy-badge.png)](https://mseep.ai/app/yukukotani-mcp-gcloud-adc-proxy)
+
 # mcp-gcloud-adc-proxy
 
 [日本語](./README_ja.md)
