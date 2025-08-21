@@ -1,8 +1,23 @@
 {
   "name": "mcp-gcloud-adc",
+  "description": "An auth proxy for accessing remote MCP servers using Google Cloud Application Default Credentials (ADC)",
   "version": "0.0.6",
+  "keywords": [
+    "mcp",
+    "model context protocol",
+    "gcp",
+    "google cloud"
+  ],
+  "author": "Yuku Kotani (y.kotani@dr-ubie.com)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yukukotani/mcp-gcloud-adc"
+  },
+  "homepage": "https://github.com/yukukotani/mcp-gcloud-adc",
+  "bugs": "https://github.com/yukukotani/mcp-gcloud-adc/issues",
+
   "type": "module",
-  "description": "Google Cloud Run MCP Server Proxy with ADC authentication",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,6 +26,7 @@
     "dist",
     "package.json"
   ],
+
   "scripts": {
     "build": "tsdown",
     "dev": "tsx src/index.ts",
@@ -31,14 +47,6 @@
     "format": "biome format --write .",
     "prepublishOnly": "bun run build"
   },
-  "keywords": [
-    "mcp",
-    "model context protocol",
-    "gcp",
-    "google cloud"
-  ],
-  "author": "Yuku Kotani (y.kotani@dr-ubie.com)",
-  "license": "MIT",
   "engines": {
     "node": ">=22.0.0"
   },
