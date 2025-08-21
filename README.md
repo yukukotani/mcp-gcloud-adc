@@ -30,7 +30,7 @@ See the [Google Cloud documentation](https://cloud.google.com/docs/authenticatio
 
 ```bash
 # Start MCP proxy
-mcp-gcloud-adc-proxy --url https://your-cloud-run-service.run.app
+npx mcp-gcloud-adc-proxy --url https://your-cloud-run-service.run.app
 ```
 
 ### Setup to Claude Code

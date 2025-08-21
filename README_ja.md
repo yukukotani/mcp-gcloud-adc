@@ -28,7 +28,7 @@ export GOOGLE_APPLICATION_CREDENTIALS="path/to/service-account.json"
 
 ```bash
 # MCPプロキシを起動
-mcp-gcloud-adc-proxy --url https://your-cloud-run-service.run.app
+npx mcp-gcloud-adc-proxy --url https://your-cloud-run-service.run.app
 ```
 
 ### Claude Codeへの設定
