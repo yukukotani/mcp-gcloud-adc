@@ -9,7 +9,7 @@
     "google cloud"
   ],
   "author": "Yuku Kotani (y.kotani@dr-ubie.com)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/yukukotani/mcp-gcloud-adc"

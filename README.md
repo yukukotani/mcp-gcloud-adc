@@ -43,4 +43,4 @@ claude mcp add foobar -s project -- npx -y mcp-gcloud-adc -u https://foobar.run.
 
 ## License
 
-MIT License
+Apache 2.0 License
