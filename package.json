@@ -1,7 +1,7 @@
 {
   "name": "mcp-gcloud-adc",
   "description": "An auth proxy for accessing remote MCP servers using Google Cloud Application Default Credentials (ADC)",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "keywords": [
     "mcp",
     "model context protocol",
@@ -16,7 +16,6 @@
   },
   "homepage": "https://github.com/yukukotani/mcp-gcloud-adc",
   "bugs": "https://github.com/yukukotani/mcp-gcloud-adc/issues",
-
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -26,7 +25,6 @@
     "dist",
     "package.json"
   ],
-
   "scripts": {
     "build": "tsdown",
     "dev": "tsx src/index.ts",
