@@ -1,16 +1,7 @@
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import type { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CallToolRequestSchema,
-  GetPromptRequestSchema,
-  InitializeRequestSchema,
-  ListPromptsRequestSchema,
-  ListResourcesRequestSchema,
-  ListToolsRequestSchema,
-  ReadResourceRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
+import { InitializeRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import type { McpProxy } from "../usecase/mcp-proxy/types.js";
-import { logger } from "../libs/logging/logger.js";
 
 type IdGeneratorFn = () => string | number;
 

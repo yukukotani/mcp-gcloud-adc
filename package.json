@@ -25,7 +25,7 @@
     "lint:tsc": "tsc --noEmit",
     "lint:knip": "knip",
     "lint": "concurrently 'npm:lint:*'",
-    "fix:biome": "biome check --write .",
+    "fix:biome": "biome check --write --unsafe .",
     "fix:knip": "knip --fix --allow-remove-files",
     "fix": "concurrently 'npm:fix:*'",
     "format": "biome format --write .",
